@@ -47,3 +47,7 @@ void CPU::cycle()
     }
     Istate++;
 }
+
+void CPU::executeSignals()
+{
+}
