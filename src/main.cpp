@@ -21,6 +21,7 @@ public:
 
 FQ frequency(1000000);
 CPU cpu;
+unsigned long long counter = 0;
 
 int main(int argc, char *argv[])
 {
@@ -37,6 +38,11 @@ int main(int argc, char *argv[])
             cpu.cycle();
         }
         std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
+        counter++;
+        if(counter == frequency.HZ * 10)
+        {
+            break;
+        }
     }
     return 0;
 }
