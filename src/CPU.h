@@ -12,16 +12,17 @@ union uint16_ADDR
     uint16_t addr;
     struct
     {
-        byte L;
-        byte H;
+        uint8_t L;
+        uint8_t H;
     };
 };
 
 struct CPU_State
 {
-    byte AC, A, B, IR0, IR1, SP;
+    uint8_t AC, A, B, IR0, IR1, SP, X, Y;
     uint16_ADDR PC, ADDRESS;
-    byte Istate;
+    uint8_t Istate;
+    bool Halted;
 };
 
 union Signals
@@ -42,7 +43,7 @@ union Signals
                     uint8_t B0 : 1;
                 };
             };
-        }RI;
+        } RI;
         struct
         {
             uint8_t EN : 1;
@@ -56,7 +57,7 @@ union Signals
                     uint8_t B0 : 1;
                 };
             };
-        }RO;
+        } RO;
         uint8_t FI : 1;
         struct
         {
@@ -118,16 +119,24 @@ public:
 
 private:
     void executeSignals();
+    uint8_t &getRegister(uint8_t regNum);
+    uint8_t ALU(uint8_t carry, uint8_t OP);
 
 private:
     MEM mem;
     Signals signals;
-    byte Istate = 0;
+    uint8_t Istate = 0;
     bool isFeching = true;
     bool isFechingData = false;
     bool isComputing = false;
     int fechCycle = 0;
-    byte addrMode = 0, addrMode2 = 0, RI = 0, RO = 0;
+    uint8_t addrMode = 0, addrMode2 = 0, RI = 0, RO = 0;
+    struct
+    {
+        uint8_t carry : 1;
+        uint8_t zero : 1;
+        uint8_t negative : 1;
+    } flags;
 };
 
 #endif // _CPU_H_

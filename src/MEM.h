@@ -11,6 +11,7 @@ class MEM
 {
 public:
     byte get();
+    void set(byte data);
     void setAddress(uint16_t new_addr);
 private:
     byte data_array[0x10000];
