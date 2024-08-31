@@ -6,8 +6,9 @@
 #include "Computer.h"
 #include "Pheriph.h"
 
-struct MEMMAP
+class MEMMAP
 {
+public:
     enum REG_TYPE{
         pheriph,
         ram,

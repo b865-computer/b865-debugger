@@ -41,6 +41,10 @@ void CPU::cycle()
     else if (isFechingData)
     {
         signals.val = AddrModeTable[addrMode][fechCycle];
+        if(!signals.val)
+        {
+            isFechingData = false;
+        }
         if (!isFechingData)
         {
             isComputing = true;
@@ -49,6 +53,16 @@ void CPU::cycle()
     }
     if (isComputing)
     {
+        signals.val = AddrModeTable[Istate][IR0];
+        if(!signals.val)
+        {
+            isComputing = false;
+        }
+        if (!isComputing)
+        {
+            isFeching = true;
+            Istate = 0;
+        }
     }
     Istate++;
 }

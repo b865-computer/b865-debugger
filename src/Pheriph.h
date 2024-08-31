@@ -4,8 +4,9 @@
 #define _PERIPH_H_
 #include "Computer.h"
 
-struct Pheriph
+class Pheriph
 {
+public:
     Pheriph(uint8_t len);
     uint8_t* regs;
 };
