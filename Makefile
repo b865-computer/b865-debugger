@@ -9,7 +9,6 @@ BUILD = build
 
 all: build clean run
 
-
 run:
 
 build: $(OBJ)

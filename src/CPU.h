@@ -29,7 +29,7 @@ union Signals
     struct
     {
         uint8_t HLT : 1;
-        struct RI
+        struct
         {
             uint8_t EN : 1;
             union
@@ -42,8 +42,8 @@ union Signals
                     uint8_t B0 : 1;
                 };
             };
-        };
-        struct RO
+        }RI;
+        struct
         {
             uint8_t EN : 1;
             union
@@ -56,14 +56,14 @@ union Signals
                     uint8_t B0 : 1;
                 };
             };
-        };
+        }RO;
         uint8_t FI : 1;
-        struct M
+        struct
         {
             uint8_t I : 1;
             uint8_t O : 1;
-        };
-        struct ALU
+        } M;
+        struct
         {
             uint8_t OUT : 1;
             union
@@ -76,35 +76,35 @@ union Signals
                     uint8_t B0 : 1;
                 };
             };
-        };
-        struct PC
+        } ALU;
+        struct
         {
             uint8_t INC : 1; // CE
             uint8_t I : 1;
             uint8_t O : 1;
-        };
-        struct PC
+        } PC;
+        struct
         {
             uint8_t INC : 1;
             uint8_t DEC : 1;
             uint8_t O : 1;
-        };
-        uint8_t CA_SE : 1; // Carry slelect
-        struct X
+        } SP;
+        uint8_t CA_SE : 1; // Carry select
+        struct
         {
             uint8_t INC : 1;
             uint8_t DEC : 1;
-        };
-        struct Y
+        } X;
+        struct
         {
             uint8_t INC : 1;
             uint8_t DEC : 1;
-        };
-        struct IR
+        } Y;
+        struct
         {
             uint8_t I0 : 1;
             uint8_t I1 : 1;
-        };
+        } IR;
         uint8_t reserved : 3;
     };
     uint32_t val;

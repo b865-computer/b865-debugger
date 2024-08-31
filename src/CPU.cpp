@@ -11,6 +11,11 @@ void CPU::init()
     isComputing = false;
     isFeching = false;
     isFechingData = false;
+
+    signals.val = 0;
+    signals.RO.B2 = 1;
+    signals.RI.B0 = 1;
+    fprintf(stdout, "Signals: %X", signals.val);
 }
 
 void CPU::cycle()
