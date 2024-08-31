@@ -2,16 +2,18 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main" ]
+      branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+      branches: [ main ]
 
 jobs:
   build:
-
-    runs-on: Windows 10
-
-    steps:
-    - uses: g++
-    - name: make
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: install cppunit
+      run: sudo apt install -y libcppunit-dev
+      - name: configure
+      run: ./configure
+      - name: make
       run: make
