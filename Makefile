@@ -7,7 +7,7 @@ BUILD = build
 
 .PHONY: all
 
-all: build test run 
+all: clean build test run 
 
 run:
 	./emulator

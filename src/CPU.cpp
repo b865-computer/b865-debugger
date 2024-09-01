@@ -10,7 +10,6 @@ void CPU::init()
     isComputing = false;
     isFeching = false;
     isFechingData = false;
-    Halted = false;
     signals.val = 0;
     signals.HLT = 1;
 }
