@@ -1,6 +1,5 @@
 #include "CPU.h"
-
-uint32_t AddrModeTable[16][16];
+#include "SignalTables.h"
 
 void CPU::init()
 {
@@ -11,12 +10,17 @@ void CPU::init()
     isComputing = false;
     isFeching = false;
     isFechingData = false;
+<<<<<<< Updated upstream
     Halted = false;
+=======
+    signals.val = 0;
+    signals.HLT = 1;
+>>>>>>> Stashed changes
 }
 
 void CPU::cycle()
 {
-    if (Halted)
+    if (signals.HLT)
     {
         return;
     }
@@ -40,8 +44,13 @@ void CPU::cycle()
     }
     else if (isFechingData)
     {
+<<<<<<< Updated upstream
         signals.val = AddrModeTable[addrMode][fechCycle];
         if(!signals.val)
+=======
+        signals.val = AddrModeTable[addrMode][Cycle];
+        if (!signals.val)
+>>>>>>> Stashed changes
         {
             isFechingData = false;
         }
@@ -53,8 +62,13 @@ void CPU::cycle()
     }
     if (isComputing)
     {
+<<<<<<< Updated upstream
         signals.val = AddrModeTable[Istate][IR0];
         if(!signals.val)
+=======
+        signals.val = ISTable[IR0][Cycle];
+        if (!signals.val)
+>>>>>>> Stashed changes
         {
             isComputing = false;
         }
@@ -75,22 +89,22 @@ void CPU::executeSignals()
     {
         Halted = true;
     }
-    if (signals.RO.EN)
+    if (signals.RO_EN)
     {
-        DBus = getRegister(signals.RO.R);
+        DBus = getRegister(signals.RO_B0);
     }
-    else if (signals.M.O)
+    else if (signals.M_O)
     {
         DBus = mem.get();
     }
-    else if (signals.ALU.OUT)
+    else if (signals.ALU_OUT)
     {
-        signals.ALU.OP = IR0 & 0xF;
-        DBus = ALU(signals.CA_SE == 1 ? flags.carry : signals.ALU.B0, signals.ALU.OP);
+        signals.ALU_B0 = IR0 & 0xF;
+        DBus = ALU(signals.CA_SE == 1 ? flags.carry : signals.ALU_B0, signals.ALU_B0);
     }
-    if (signals.RI.EN)
+    if (signals.RI_EN)
     {
-        getRegister(signals.RO.R) = DBus;
+        getRegister(signals.RO_B0) = DBus;
     }
     if (signals.FI)
     {
@@ -101,7 +115,7 @@ void CPU::executeSignals()
         {
             flags.zero = 1;
         }
-        if (A - B < 0 && signals.ALU.OP == 1)
+        if (A - B < 0 && signals.ALU_B0 == 1)
         {
             flags.negative = 1;
         }
@@ -110,55 +124,55 @@ void CPU::executeSignals()
             flags.carry = 1;
         }
     }
-    else if (signals.M.O)
+    else if (signals.M_O)
     {
         mem.set(DBus);
     }
-    if(signals.SP.INC)
+    if (signals.SP_INC)
     {
         SP++;
     }
-    if(signals.SP.DEC)
+    if (signals.SP_DEC)
     {
         SP--;
     }
-    if(signals.SP.O)
+    if (signals.SP_O)
     {
         ABus.addr = SP + 0x1000;
     }
-    if(signals.PC.INC)
+    if (signals.PC_INC)
     {
         PC.addr++;
     }
-    if(signals.PC.O)
+    if (signals.PC_O)
     {
         ABus.addr = PC.addr;
     }
-    if(signals.PC.I)
+    if (signals.PC_I)
     {
         PC.addr = ABus.addr;
     }
-    if(signals.X.INC)
+    if (signals.X_INC)
     {
         X++;
     }
-    if(signals.X.DEC)
+    if (signals.X_DEC)
     {
         X--;
     }
-    if(signals.Y.INC)
+    if (signals.Y_INC)
     {
         Y++;
     }
-    if(signals.Y.DEC)
+    if (signals.Y_DEC)
     {
         Y--;
     }
-    if(signals.IR.I0)
+    if (signals.IRI0)
     {
         IR0 = mem.get();
     }
-    if(signals.IR.I1)
+    if (signals.IRI1)
     {
         IR1 = mem.get();
     }

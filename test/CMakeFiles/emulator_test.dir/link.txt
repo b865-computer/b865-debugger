@@ -1,0 +1,1 @@
+/usr/bin/g++ CMakeFiles/emulator_test.dir/emulator_test.cpp.o CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/CPU.cpp.o CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/MEM.cpp.o CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/Pheriph.cpp.o -o emulator_test  /usr/local/lib/libCatch2Main.a /usr/local/lib/libCatch2.a 

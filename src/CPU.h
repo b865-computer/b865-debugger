@@ -7,6 +7,7 @@
 #include "Computer.h"
 #include "MEM.h"
 
+
 union uint16_ADDR
 {
     uint16_t addr;
@@ -29,84 +30,50 @@ union Signals
 {
     struct
     {
-        uint8_t HLT : 1;
-        struct
-        {
-            uint8_t EN : 1;
-            union
-            {
-                uint8_t R : 3;
-                struct
-                {
-                    uint8_t B2 : 1;
-                    uint8_t B1 : 1;
-                    uint8_t B0 : 1;
-                };
-            };
-        } RI;
-        struct
-        {
-            uint8_t EN : 1;
-            union
-            {
-                uint8_t R : 3;
-                struct
-                {
-                    uint8_t B2 : 1;
-                    uint8_t B1 : 1;
-                    uint8_t B0 : 1;
-                };
-            };
-        } RO;
-        uint8_t FI : 1;
-        struct
-        {
-            uint8_t I : 1;
-            uint8_t O : 1;
-        } M;
-        struct
-        {
-            uint8_t OUT : 1;
-            union
-            {
-                uint8_t OP : 3;
-                struct
-                {
-                    uint8_t B2 : 1;
-                    uint8_t B1 : 1;
-                    uint8_t B0 : 1;
-                };
-            };
-        } ALU;
-        struct
-        {
-            uint8_t INC : 1; // CE
-            uint8_t I : 1;
-            uint8_t O : 1;
-        } PC;
-        struct
-        {
-            uint8_t INC : 1;
-            uint8_t DEC : 1;
-            uint8_t O : 1;
-        } SP;
-        uint8_t CA_SE : 1; // Carry select
-        struct
-        {
-            uint8_t INC : 1;
-            uint8_t DEC : 1;
-        } X;
-        struct
-        {
-            uint8_t INC : 1;
-            uint8_t DEC : 1;
-        } Y;
-        struct
-        {
-            uint8_t I0 : 1;
-            uint8_t I1 : 1;
-        } IR;
-        uint8_t reserved : 3;
+        uint32_t HLT : 1;
+
+        uint32_t RI_EN : 1;
+
+        uint32_t RI_B2 : 1;
+        uint32_t RI_B1 : 1;
+        uint32_t RI_B0 : 1;
+
+        uint32_t RO_EN : 1;
+
+        uint32_t RO_B2 : 1;
+        uint32_t RO_B1 : 1;
+        uint32_t RO_B0 : 1;
+
+        uint32_t FI : 1;
+
+        uint32_t M_I : 1;
+        uint32_t M_O : 1;
+
+        uint32_t ALU_OUT : 1;
+
+        uint32_t ALU_B2 : 1;
+        uint32_t ALU_B1 : 1;
+        uint32_t ALU_B0 : 1;
+
+        uint32_t PC_INC : 1; // CE
+        uint32_t PC_I : 1;
+        uint32_t PC_O : 1;
+
+        uint32_t SP_INC : 1;
+        uint32_t SP_DEC : 1;
+        uint32_t SP_O : 1;
+
+        uint32_t CA_SE : 1; // Carry select
+
+        uint32_t X_INC : 1;
+        uint32_t X_DEC : 1;
+
+        uint32_t Y_INC : 1;
+        uint32_t Y_DEC : 1;
+
+        uint32_t IRI0 : 1;
+        uint32_t IRI1 : 1;
+        uint32_t reserved : 3;
     };
     uint32_t val;
 };
@@ -117,12 +84,12 @@ public:
     void init();
     void cycle();
 
-private:
+public:
     void executeSignals();
     uint8_t &getRegister(uint8_t regNum);
     uint8_t ALU(uint8_t carry, uint8_t OP);
 
-private:
+public:
     MEM mem;
     Signals signals;
     uint8_t Istate = 0;

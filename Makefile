@@ -7,7 +7,11 @@ BUILD = build
 
 .PHONY: all
 
+<<<<<<< Updated upstream
 all: build clean run
+=======
+all: clean build test run 
+>>>>>>> Stashed changes
 
 run:
 

@@ -1,0 +1,3 @@
+/home/abel/8-bit-breadboard_emulator/test/CMakeFiles/emulator_test.dir
+/home/abel/8-bit-breadboard_emulator/test/CMakeFiles/edit_cache.dir
+/home/abel/8-bit-breadboard_emulator/test/CMakeFiles/rebuild_cache.dir
