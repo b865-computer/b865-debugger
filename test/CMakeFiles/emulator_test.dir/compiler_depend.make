@@ -653,9 +653,7 @@ CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/CPU.cpp.o: 
   /home/abel/8-bit-breadboard_emulator/src/Computer.h \
   /home/abel/8-bit-breadboard_emulator/src/MEM.h \
   /home/abel/8-bit-breadboard_emulator/src/MemMap.h \
-  /home/abel/8-bit-breadboard_emulator/src/Pheriph.h \
-  /home/abel/8-bit-breadboard_emulator/src/SignalTables.h \
-  /usr/include/inttypes.h
+  /home/abel/8-bit-breadboard_emulator/src/Pheriph.h
 
 CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/MEM.cpp.o: /home/abel/8-bit-breadboard_emulator/src/MEM.cpp \
   /usr/include/stdc-predef.h \
@@ -915,8 +913,6 @@ CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/Pheriph.cpp
 /usr/local/include/catch2/interfaces/catch_interfaces_generatortracker.hpp:
 
 /usr/local/include/catch2/generators/catch_generators.hpp:
-
-/usr/include/inttypes.h:
 
 /usr/local/include/catch2/generators/catch_generator_exception.hpp:
 
@@ -1333,8 +1329,6 @@ CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/Pheriph.cpp
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
 
 /usr/include/c++/11/bits/range_access.h:
-
-/home/abel/8-bit-breadboard_emulator/src/SignalTables.h:
 
 /usr/include/c++/11/bits/stl_vector.h:
 
