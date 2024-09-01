@@ -35,12 +35,12 @@ void CPU::cycle()
             mem.setAddress(PC.addr);
             isFeching = false;
             isFechingData = true;
-            fechCycle = 0;
+            Cycle = 0;
         }
     }
     else if (isFechingData)
     {
-        signals.val = AddrModeTable[addrMode][fechCycle];
+        signals.val = AddrModeTable[addrMode][Cycle];
         if(!signals.val)
         {
             isFechingData = false;
@@ -48,12 +48,13 @@ void CPU::cycle()
         if (!isFechingData)
         {
             isComputing = true;
+            Cycle = 0;
         }
-        fechCycle++;
+        Cycle++;
     }
     if (isComputing)
     {
-        signals.val = AddrModeTable[Istate][IR0];
+        signals.val = AddrModeTable[IR0][Cycle];
         if(!signals.val)
         {
             isComputing = false;
@@ -62,7 +63,9 @@ void CPU::cycle()
         {
             isFeching = true;
             Istate = 0;
+            Cycle = 0;
         }
+        Cycle++;
     }
     Istate++;
 }
