@@ -12,6 +12,7 @@ public:
         HZ = _HZ;
         ns = 1000000000 / HZ;
         sleep = ns / 5;
+        sleep = ns / 5;
         return;
     }
     uint64_t sleep = 10;
@@ -47,11 +48,6 @@ int main(int argc, char *argv[])
             }
         }
         std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
-        counter++;
-        if(counter == frequency.HZ * 10)
-        {
-            break;
-        }
     }
     return 0;
 }
