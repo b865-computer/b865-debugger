@@ -656,6 +656,8 @@ CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/CPU.cpp.o
  /home/abel/8-bit-breadboard_emulator/src/MEM.h
  /home/abel/8-bit-breadboard_emulator/src/MemMap.h
  /home/abel/8-bit-breadboard_emulator/src/Pheriph.h
+ /home/abel/8-bit-breadboard_emulator/src/SignalTables.h
+ /usr/include/inttypes.h
 
 CMakeFiles/emulator_test.dir/home/abel/8-bit-breadboard_emulator/src/MEM.cpp.o
  /home/abel/8-bit-breadboard_emulator/src/MEM.cpp
