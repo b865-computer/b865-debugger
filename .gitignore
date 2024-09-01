@@ -72,8 +72,6 @@ build
 
 test/emulator_test
 emulator
-
-.vscode/*.json
 CMakeCache.txt
 */CmakeCache.txt
 CmakeFiles/
