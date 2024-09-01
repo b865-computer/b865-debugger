@@ -41,7 +41,7 @@ void CPU::cycle()
     else if (isFechingData)
     {
         signals.val = AddrModeTable[addrMode][Cycle];
-        if (!signals.val)
+        if(!signals.val)
         {
             isFechingData = false;
         }
