@@ -64,7 +64,9 @@ void CPU::cycle()
             isFeching = true;
             Cycle = 0;
             Istate = 0;
+            Cycle = 0;
         }
+        Cycle++;
     }
     Istate++;
 }
