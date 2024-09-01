@@ -96,7 +96,7 @@ public:
     bool isFeching = true;
     bool isFechingData = false;
     bool isComputing = false;
-    int fechCycle = 0;
+    int Cycle = 0;
     uint8_t addrMode = 0, addrMode2 = 0, RI = 0, RO = 0;
     struct
     {

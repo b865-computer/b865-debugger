@@ -10,12 +10,9 @@ void CPU::init()
     isComputing = false;
     isFeching = false;
     isFechingData = false;
-<<<<<<< Updated upstream
     Halted = false;
-=======
     signals.val = 0;
     signals.HLT = 1;
->>>>>>> Stashed changes
 }
 
 void CPU::cycle()
@@ -39,42 +36,34 @@ void CPU::cycle()
             mem.setAddress(PC.addr);
             isFeching = false;
             isFechingData = true;
-            fechCycle = 0;
+            Cycle = 0;
         }
     }
     else if (isFechingData)
     {
-<<<<<<< Updated upstream
-        signals.val = AddrModeTable[addrMode][fechCycle];
-        if(!signals.val)
-=======
         signals.val = AddrModeTable[addrMode][Cycle];
         if (!signals.val)
->>>>>>> Stashed changes
         {
             isFechingData = false;
         }
         if (!isFechingData)
         {
             isComputing = true;
+            Cycle = 0;
         }
-        fechCycle++;
+        Cycle++;
     }
     if (isComputing)
     {
-<<<<<<< Updated upstream
-        signals.val = AddrModeTable[Istate][IR0];
-        if(!signals.val)
-=======
         signals.val = ISTable[IR0][Cycle];
         if (!signals.val)
->>>>>>> Stashed changes
         {
             isComputing = false;
         }
         if (!isComputing)
         {
             isFeching = true;
+            Cycle = 0;
             Istate = 0;
         }
     }
