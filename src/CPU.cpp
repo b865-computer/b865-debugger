@@ -11,7 +11,7 @@ void CPU::init()
     isComputing = false;
     isFeching = false;
     isFechingData = false;
-    Halted = false;
+    Halted = true;
 }
 
 void CPU::cycle()

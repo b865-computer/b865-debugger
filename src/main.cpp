@@ -11,7 +11,7 @@ public:
     {
         HZ = _HZ;
         ns = 1000000000 / HZ;
-        sleep = ns / 2;
+        sleep = ns / 5;
         return;
     }
     uint64_t sleep = 10;
@@ -27,22 +27,26 @@ int main(int argc, char *argv[])
 {
     cpu.init();
     auto start = std::chrono::high_resolution_clock::now();
+    auto newStart = start;
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
     while (1)
     {
-        auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        uint64_t nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+        newStart = std::chrono::high_resolution_clock::now();
+        elapsed = newStart - start;
+        uint64_t nanoseconds = elapsed.count();
         if (nanoseconds > frequency.ns)
         {
-            start = std::chrono::high_resolution_clock::now();
+            start = newStart;
             cpu.cycle();
+            counter++;
+            if(counter >= frequency.HZ)
+            {
+                fprintf(stderr,"\n");
+                return 0;
+            }
         }
         std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
-        counter++;
-        if(counter == frequency.HZ * 10)
-        {
-            break;
-        }
     }
     return 0;
 }
