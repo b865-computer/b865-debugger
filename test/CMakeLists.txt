@@ -6,8 +6,8 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 project(emulator_test
     LANGUAGES CXX)
-    
-add_executable(emulator_test emulator_test.cpp)
+
+add_executable(emulator_test emulator_test.cpp ../src/CPU.cpp ../src/MEM.cpp ../src/Pheriph.cpp)
 
 find_package(Catch2 3 REQUIRED)
 
