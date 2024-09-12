@@ -73,7 +73,10 @@ union Signals
 
         uint32_t IRI0 : 1;
         uint32_t IRI1 : 1;
-        uint32_t reserved : 3;
+
+        uint32_t ROR : 1;
+        
+        uint32_t reserved : 2;
     };
     uint32_t val;
 };

@@ -90,7 +90,7 @@ void CPU::executeSignals()
     else if (signals.ALU_OUT)
     {
         signals.ALU_B0 = IR0 & 0xF;
-        DBus = ALU(signals.CA_SE == 1 ? flags.carry : signals.ALU_B0, signals.ALU_B0);
+        DBus = ALU(signals.CA_SE == 1 ? flags.carry : signals.ALU_B0, signals.ALU_B0, signals.ROR);
     }
     if (signals.RI_EN)
     {
