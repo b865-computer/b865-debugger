@@ -204,8 +204,14 @@ uint8_t &CPU::getRegister(uint8_t regNum)
     return (*reg);
 }
 
-uint8_t CPU::ALU(uint8_t carry, uint8_t OP)
+uint8_t CPU::ALU(uint8_t carry, uint8_t OP, bool shift)
 {
+    if(shift)
+    {
+        uint8_t val = (A >> 1) + (carry << 7);
+        carry = A & 1;
+        return val;
+    }
     switch (OP)
     {
     case 0:

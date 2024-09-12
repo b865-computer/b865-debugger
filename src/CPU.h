@@ -87,7 +87,7 @@ public:
 public:
     void executeSignals();
     uint8_t &getRegister(uint8_t regNum);
-    uint8_t ALU(uint8_t carry, uint8_t OP);
+    uint8_t ALU(uint8_t carry, uint8_t OP, bool shift);
 
 public:
     MEM mem;
