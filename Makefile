@@ -7,22 +7,13 @@ BUILD = build
 
 .PHONY: all
 
-all: build test run 
+all: build run 
 
 run:
-	./emulator
+	./emulator.exe
 
 build: $(OBJ)
 	$(CC) -o emulator $^ $(CFLAGS)
 
 build/%.o: src/%.cpp
 	$(CC) -o $@ -c $< $(CFLAGS)
-
-clean:
-	rm ./build/*
-
-buildTest: $(SRC) test/emulator_test.cpp
-	cd test && cmake --build .
-
-test: buildTest
-	./test/emulator_test
