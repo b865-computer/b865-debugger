@@ -91,6 +91,7 @@ public:
     void init();
     void cycle();
     void loadProgram(uint8_t newprogram[0x8000]);
+    int loadProgramFromFile(std::string filename);
     void startExec();
 
 private:

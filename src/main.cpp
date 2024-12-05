@@ -9,6 +9,10 @@ class FQ
 public:
     inline FQ(uint64_t _HZ)
     {
+        set(_HZ);
+    }
+    inline void set(uint64_t _HZ)
+    {
         HZ = _HZ;
         ns = 1000000000 / HZ;
         sleep = ns / 5;
@@ -19,7 +23,7 @@ public:
     uint64_t HZ = 10;
 };
 
-FQ frequency(1000000);
+FQ frequency(2000000);
 CPU cpu;
 unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
 
@@ -28,7 +32,9 @@ int main(int argc, char *argv[])
     cpu.init();
     cpu.startExec();
 
-    fprintf(stdout, "Start...\n");
+    bool sleep = (frequency.sleep > 100);
+
+    fprintf(stdout, "Start... sleep: %s\n", sleep ? "true" : "false");
 
     auto start = std::chrono::high_resolution_clock::now();
     auto now = start;
@@ -50,7 +56,10 @@ int main(int argc, char *argv[])
                 return 0;
             }
         }
-        std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
+        if(sleep)
+        {
+            std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
+        }
     }
     return 0;
 }

@@ -1,5 +1,7 @@
 #include "CPU.h"
 #include "SignalTables.h"
+#include <iostream>
+#include <fstream>
 
 void CPU::init()
 {
@@ -13,6 +15,28 @@ void CPU::init()
 void CPU::loadProgram(uint8_t newprogram[0x8000])
 {
     mem.cpy(0x8000, newprogram, 0x8000);
+}
+int CPU::loadProgramFromFile(std::string filename)
+{
+    std::ifstream file(filename, std::ios::binary | std::ios::in);
+    if(!file.is_open())
+    {
+        fprintf(stderr, "Error: unable to open file %s\n", filename.c_str());
+        return 1;
+    }
+    std::streampos begin, end;
+    begin = file.tellg();
+    file.seekg (0, std::ios::end);
+    end = file.tellg();
+    file.close();
+    uint8_t* program = new uint8_t[(end - begin)];
+    file.read((char*)program, end - begin);
+    file.close();
+
+    loadProgram(program);
+
+    delete program;
+    return 0;
 }
 void CPU::startExec()
 {
@@ -159,6 +183,7 @@ uint8_t CPU::getRegOut(uint8_t regNum, uint8_t bankRegNum)
     default:
         break;
     }
+    return 0;
 }
 
 uint8_t CPU::calcALUOut()
