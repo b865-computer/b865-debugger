@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
             start = newStart;
             cpu.cycle();
             counter++;
-            if(counter >= frequency.HZ)
+            if(counter >= frequency.HZ / 100)
             {
                 fprintf(stderr,"\n");
                 return 0;
