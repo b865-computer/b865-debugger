@@ -21,28 +21,32 @@ public:
 
 FQ frequency(1000000);
 CPU cpu;
-unsigned long long counter = 0;
+unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
 
 int main(int argc, char *argv[])
 {
     cpu.init();
-    auto start = std::chrono::high_resolution_clock::now();
-    auto newStart = start;
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    cpu.startExec();
 
+    fprintf(stdout, "Start...\n");
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto now = start;
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    
     while (1)
     {
-        newStart = std::chrono::high_resolution_clock::now();
-        elapsed = newStart - start;
+        now = std::chrono::high_resolution_clock::now();
+        elapsed = now - (start + std::chrono::nanoseconds(counter * frequency.ns));
         uint64_t nanoseconds = elapsed.count();
         if (nanoseconds > frequency.ns)
         {
-            start = newStart;
             cpu.cycle();
             counter++;
-            if(counter >= frequency.HZ / 100)
+            if(counter >= frequency.HZ)
             {
-                fprintf(stderr,"\n");
+                auto end = std::chrono::high_resolution_clock::now();
+                fprintf(stdout,"Finished, time: %lldns\n", (end - start).count());
                 return 0;
             }
         }

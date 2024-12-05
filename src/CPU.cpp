@@ -3,15 +3,22 @@
 
 void CPU::init()
 {
-    AC = A = B = IR0 = IR1 = SP = 0;
-    ADDRESS.H = 0x80;
-    ADDRESS.L = 0x00;
-    PC.addr = 0x8000;
-    isComputing = false;
-    isFeching = false;
-    isFechingData = false;
+    A = B = PC = 0;
+    PC = 0x8000;
     signals.val = 0;
+    AdrState = false;
     signals.HLT = 1;
+}
+
+void CPU::loadProgram(uint8_t newprogram[0x8000])
+{
+    mem.cpy(0x8000, newprogram, 0x8000);
+}
+void CPU::startExec()
+{
+    init();
+    signals.HLT = 0;
+    InsCycle = AdrCycle = 0;
 }
 
 void CPU::cycle()
@@ -20,218 +27,193 @@ void CPU::cycle()
     {
         return;
     }
-    if (isFeching)
+    if(AdrState)
     {
-        if (Istate == 0)
-        {
-            IR0 = mem.get();
-            PC.addr++;
-            mem.setAddress(PC.addr);
-        }
-        else
-        {
-            IR1 = mem.get();
-            PC.addr++;
-            mem.setAddress(PC.addr);
-            isFeching = false;
-            isFechingData = true;
-            Cycle = 0;
-        }
+        signals.val = InsSignalTable[AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4)][AdrCycle++];
     }
-    else if (isFechingData)
+    else
     {
-        signals.val = AddrModeTable[addrMode][Cycle];
-        if(!signals.val)
-        {
-            isFechingData = false;
-        }
-        if (!isFechingData)
-        {
-            isComputing = true;
-            Cycle = 0;
-        }
-        Cycle++;
+        signals.val = InsSignalTable[IR0 & 0x3F][InsCycle++];
     }
-    if (isComputing)
-    {
-        signals.val = ISTable[IR0][Cycle];
-        if (!signals.val)
-        {
-            isComputing = false;
-        }
-        if (!isComputing)
-        {
-            isFeching = true;
-            Cycle = 0;
-            Istate = 0;
-            Cycle = 0;
-        }
-        Cycle++;
-    }
-    Istate++;
+    RI = signals.RIO_SE ? ((IR0 & 0xE0) >> 5) : (IR1 & 0x07);
+    RO = signals.RIO_SE ? (IR1 & 0x07) : ((IR0 & 0xE0) >> 5);
+    ALU_OP = IR0 & 0x07;
+    executeSignals();
 }
 
 void CPU::executeSignals()
 {
-    byte DBus;
+    if(signals.INS_END)
+    {
+        InsCycle = AdrCycle = 0;
+        AdrModeSelect = false;
+        started = true;
+    }
+    if(signals.ROM_SE)
+    {
+        AdrCycle = 0;
+        AdrState = AdrState ? false : true;
+    }
+    int regNum = signals.RO_B0 + (signals.RO_B1 << 1) + (signals.RO_B2 << 2);
+    byte DBus = getRegOut(regNum, RO);
     uint16_ADDR ABus;
-    if (signals.HLT)
+    if(signals.SPO_A)
     {
-        Halted = true;
+        ABus = (registers[REGISTERS_BANK::SP_IDX] + 0x100);
     }
-    if (signals.RO_EN)
+    else if(signals.ARO)
     {
-        DBus = getRegister(signals.RO_B0);
+        ABus = AR | (DBus << 8);
     }
-    else if (signals.M_O)
+    else
     {
-        DBus = mem.get();
+        ABus = PC.addr;
     }
-    else if (signals.ALU_OUT)
+
+    if(signals.MI)
     {
-        signals.ALU_B0 = IR0 & 0xF;
-        DBus = ALU(signals.CA_SE == 1 ? flags.carry : signals.ALU_B0, signals.ALU_B0, signals.ROR);
+        mem.set(PC.addr, DBus);
     }
-    if (signals.RI_EN)
+    if(signals.AM_SE)
     {
-        getRegister(signals.RO_B0) = DBus;
+        AdrModeSelect = true;
     }
-    if (signals.FI)
-    {
-        flags.carry = 0;
-        flags.zero = 0;
-        flags.negative = 0;
-        if (A + B == 0)
-        {
-            flags.zero = 1;
-        }
-        if (A - B < 0 && signals.ALU_B0 == 1)
-        {
-            flags.negative = 1;
-        }
-        if (A + B > 255)
-        {
-            flags.carry = 1;
-        }
-    }
-    else if (signals.M_O)
-    {
-        mem.set(DBus);
-    }
-    if (signals.SP_INC)
-    {
-        SP++;
-    }
-    if (signals.SP_DEC)
-    {
-        SP--;
-    }
-    if (signals.SP_O)
-    {
-        ABus.addr = SP + 0x1000;
-    }
-    if (signals.PC_INC)
+    if(signals.CE)
     {
         PC.addr++;
     }
-    if (signals.PC_O)
+    if(signals.ARI)
     {
-        ABus.addr = PC.addr;
+        AR = DBus;
     }
-    if (signals.PC_I)
+    if(signals.AI)
     {
-        PC.addr = ABus.addr;
+        A = DBus;
     }
-    if (signals.X_INC)
+    if(signals.BI)
     {
-        X++;
+        B = DBus;
     }
-    if (signals.X_DEC)
+    if(signals.PCI)
     {
-        X--;
+        PC = ABus;
     }
-    if (signals.Y_INC)
+    if(signals.IR1I)
     {
-        Y++;
+        IR1 = DBus;
     }
-    if (signals.Y_DEC)
+    if(InsCycle && !AdrModeSelect && started)
     {
-        Y--;
+        IR0 = DBus;
     }
-    if (signals.IRI0)
+    if(signals.RI_EN)
     {
-        IR0 = mem.get();
+        registers[RI] = DBus;
     }
-    if (signals.IRI1)
+    if(signals.SP_DEC)
     {
-        IR1 = mem.get();
+        registers[REGISTERS_BANK::SP_IDX]--;
     }
-    mem.setAddress(PC.addr);
+    if(signals.SP_DEC)
+    {
+        registers[REGISTERS_BANK::SP_IDX]++;
+    }
+    if(signals.X_DEC)
+    {
+        registers[REGISTERS_BANK::X_IDX]--;
+    }
+    if(signals.X_INC)
+    {
+        registers[REGISTERS_BANK::X_IDX]++;
+    }
 }
 
-uint8_t &CPU::getRegister(uint8_t regNum)
+uint8_t CPU::getRegOut(uint8_t regNum, uint8_t bankRegNum)
 {
-    uint8_t *reg;
     switch (regNum)
     {
-    case 0:
-        reg = &A;
+    case REGISTERS_STATE::A_O_IDX:
+        return A;
         break;
-    case 1:
-        reg = &X;
+    case REGISTERS_STATE::R_O_IDX:
+        return registers[bankRegNum];
         break;
-    case 2:
-        reg = &Y;
+    case REGISTERS_STATE::S_O_IDX:
+        return calcALUOut();
         break;
-    case 3:
-        reg = &SP;
+    case REGISTERS_STATE::X_O_IDX:
+        return registers[REGISTERS_BANK::X_IDX];
         break;
-    case 4:
-        reg = &(PC.L);
+    case REGISTERS_STATE::Y_O_IDX:
+        return registers[REGISTERS_BANK::Y_IDX];
         break;
-    case 5:
-        reg = &(PC.H);
+    case REGISTERS_STATE::M_O_IDX:
+        return mem.get(PC.addr);
         break;
-    case 6:
-        reg = &AC;
+    case REGISTERS_STATE::PCH_O_IDX:
+        return PC.H;
         break;
-    case 7:
-        reg = &B;
+    case REGISTERS_STATE::PCL_O_IDX:
+        return PC.L;
         break;
     default:
         break;
     }
-    return (*reg);
 }
 
-uint8_t CPU::ALU(uint8_t carry, uint8_t OP, bool shift)
+uint8_t CPU::calcALUOut()
 {
-    if(shift)
+    // RIO_SE is the same as SUB for saving space int the real cpu.
+    int OP = signals.ALU_OP ? ALU_OP : signals.RIO_SE;
+    // Operand 2 means subtraction (0 = add), so then the carry defaults to 1.
+    // Other cases doesn't matter (eg. 3 = XOR) , because they don't use carry.
+    int carry = signals.CA_SE ? flags.carry : ((OP & 2) >> 1);
+    int B_val = signals.DBS ? B : 1;
+    uint16_t val = 0;
+    if(signals.ROR)
     {
         uint8_t val = (A >> 1) + (carry << 7);
         carry = A & 1;
-        return val;
     }
-    switch (OP)
+    else
     {
-    case 0:
-        return A + B + carry;
-    case 1:
-        return A + (B ^ 0xFF) + carry;
-    case 2:
-        return A ^ B;
-    case 3:
-        return A | B;
-    case 4:
-        return ~A;
-    case 5:
-        return ~(A | B);
-    case 6:
-        return ~(A & B);
-    case 7:
-        return A & B;
-    default:
-        return 0;
+        switch (OP)
+        {
+        case 0:
+            val = (A + B_val + carry);
+            break;
+        case 1:
+            val = ~(A ^ B_val);
+            break;
+        case 2:
+            val = (A + (B_val ^ 0xFF) + carry);
+            break;
+        case 3:
+            val = (A ^ B_val);
+            break;
+        case 4:
+            val =  (A | B_val);
+            break;
+        case 5:
+            val =  ~(A | B_val);
+            break;
+        case 6:
+            val =  ~(A & B_val);
+            break;
+        case 7:
+            val =  (A & B_val);
+            break;
+        default:
+            val =  0;
+            break;
+        }
+        carry = (val & 0x100) ? 1 : 0;
     }
-    return 0;
+    if(signals.FI)
+    {
+        flags.carry = carry;
+        flags.zero = (val) ? 1 : 0;
+        flags.negative = (carry == 0 && flags.zero == 0 && ALU_OP & 2) ? 1 : 0;
+    }
+    return val;
 }

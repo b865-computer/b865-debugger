@@ -12,3 +12,5 @@ Pheriph::Pheriph(uint8_t len)
         }
     }
 }
+
+Pheriph noPheriph(0);

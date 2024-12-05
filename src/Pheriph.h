@@ -11,4 +11,6 @@ public:
     uint8_t* regs;
 };
 
+extern Pheriph noPheriph;
+
 #endif

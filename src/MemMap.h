@@ -9,18 +9,22 @@
 class MEMMAP
 {
 public:
-    enum REG_TYPE{
+    enum REGION_TYPE{
         pheriph,
         ram,
         rom
     };
-    inline MEMMAP(REG_TYPE _type, Pheriph* _p, uint16_t _start, uint32_t _len)
-    :p(*_p)
+    inline MEMMAP(REGION_TYPE _type, uint16_t _start, uint32_t _len)
     {
 
     }
-    REG_TYPE type = ram;
-    Pheriph &p;
+    inline MEMMAP(Pheriph* _p, uint16_t _start, uint32_t _len)
+    :p(*_p)
+    {
+        type = REGION_TYPE::pheriph;
+    }
+    REGION_TYPE type = ram;
+    Pheriph &p = noPheriph;
     uint16_t start = 0;
     uint16_t len = 0;
 };
