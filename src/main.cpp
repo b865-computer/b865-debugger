@@ -23,13 +23,23 @@ public:
     uint64_t HZ = 10;
 };
 
-FQ frequency(2000000);
+FQ frequency(100);
 CPU cpu;
 unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
 
 int main(int argc, char *argv[])
 {
+    if(argc < 2)
+    {
+        fprintf(stderr, "Input file missing, Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+
     cpu.init();
+    if(cpu.loadProgramFromFile(argv[1]))
+    {
+        return 1;
+    }
     cpu.startExec();
 
     bool sleep = (frequency.sleep > 100);
@@ -49,7 +59,7 @@ int main(int argc, char *argv[])
         {
             cpu.cycle();
             counter++;
-            if(counter >= frequency.HZ)
+            if(counter >= frequency.HZ * 1)
             {
                 auto end = std::chrono::high_resolution_clock::now();
                 fprintf(stdout,"Finished, time: %lldns\n", (end - start).count());

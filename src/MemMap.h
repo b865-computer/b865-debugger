@@ -16,12 +16,15 @@ public:
     };
     inline MEMMAP(REGION_TYPE _type, uint16_t _start, uint32_t _len)
     {
-
+        start = _start;
+        len = _len;
     }
     inline MEMMAP(Pheriph* _p, uint16_t _start, uint32_t _len)
     :p(*_p)
     {
         type = REGION_TYPE::pheriph;
+        start = _start;
+        len = _len;
     }
     REGION_TYPE type = ram;
     Pheriph &p = noPheriph;

@@ -4,7 +4,7 @@
 #define _MEM_H_
 
 #include "Computer.h"
-#define MEM_REGION_COUNT 2
+#define MEM_REGION_COUNT 4
 #include "MemMap.h"
 
 class MEMORY

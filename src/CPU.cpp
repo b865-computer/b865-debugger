@@ -29,7 +29,12 @@ int CPU::loadProgramFromFile(std::string filename)
     file.seekg (0, std::ios::end);
     end = file.tellg();
     file.close();
-    uint8_t* program = new uint8_t[(end - begin)];
+    fprintf(stdout, "Load from File: %s size: %d bytes\n", filename.c_str(), (int)(end - begin));
+    if((end - begin) > 0x8000)
+    {
+        fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
+    }
+    uint8_t* program = new uint8_t[0x8000];
     file.read((char*)program, end - begin);
     file.close();
 
@@ -43,6 +48,7 @@ void CPU::startExec()
     init();
     signals.HLT = 0;
     InsCycle = AdrCycle = 0;
+    //PC = (uint16_t)((uint16_t)mem.get(0xFFFE) | ((uint16_t)mem.get(0xFFFF) << 8));
 }
 
 void CPU::cycle()

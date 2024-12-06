@@ -10,7 +10,7 @@ BUILD = build
 all: build run 
 
 run:
-	./emulator.exe
+	./emulator.exe program.out
 
 build: $(OBJ)
 	$(CC) -o emulator $^ $(CFLAGS)
