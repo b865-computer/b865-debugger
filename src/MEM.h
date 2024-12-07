@@ -4,19 +4,22 @@
 #define _MEM_H_
 
 #include "Computer.h"
-#define MEM_REG_COUNT 1
+#define MEM_REGION_COUNT 4
 #include "MemMap.h"
 
-class MEM
+class MEMORY
 {
 public:
-    byte get();
-    void set(byte data);
-    void setAddress(uint16_t new_addr);
+    byte get(uint16_t address);
+    void set(uint16_t address, byte data);
+    void cpy(uint16_t firstAdr, uint8_t *_data, uint16_t len);
+
+private:
+    void cpyRegion(uint16_t firstAdr, uint8_t *_data, uint16_t len, int regID);
+
 private:
     byte data_array[0x10000];
-    uint16_t address;
-    static MEMMAP MemMap[MEM_REG_COUNT];
+    static MEMMAP MemMap[MEM_REGION_COUNT];
 };
 
 #endif // _MEM_H_

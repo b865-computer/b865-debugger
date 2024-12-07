@@ -1,14 +1,36 @@
 #include "Pheriph.h"
+#include <thread>
 
-Pheriph::Pheriph(uint8_t len)
+Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
 {
     if (len)
     {
-        regs = (uint8_t *)calloc(len, 1);
+        regs = (uint8_t *)calloc(1, len);
         if (!regs)
         {
             fprintf(stderr, "Failed to allocate: %i bytes", len);
             exit(1);
         }
     }
+    if(thread_func)
+    {
+        thread = std::thread(thread_func, regs, &end);
+    }
 }
+
+Pheriph::~Pheriph()
+{
+    end = true;
+    if(thread.joinable())
+    {
+        thread.join();
+    }
+    if(regs)
+    {
+        delete regs;
+        regs = nullptr;
+    }
+    return;
+}
+
+Pheriph noPheriph(0, nullptr);

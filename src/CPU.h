@@ -7,7 +7,6 @@
 #include "Computer.h"
 #include "MEM.h"
 
-
 union uint16_ADDR
 {
     uint16_t addr;
@@ -16,91 +15,102 @@ union uint16_ADDR
         uint8_t L;
         uint8_t H;
     };
+    inline uint16_t &operator=(uint16_t value)
+    {
+        addr = value;
+        return this->addr;
+    }
 };
 
-struct CPU_State
+enum REGISTERS_BANK
 {
-    uint8_t AC, A, B, IR0, IR1, SP, X, Y;
-    uint16_ADDR PC, ADDRESS;
-    uint8_t Istate;
-    bool Halted;
+    AC_IDX = 0,
+    X_IDX,
+    Y_IDX,
+    SP_IDX,
+    R0_IDX,
+    R1_IDX,
+    R2_IDX,
+    R3_IDX,
 };
 
-union Signals
+enum REGISTERS_STATE
+{
+    A_O_IDX = 0,
+    R_O_IDX,
+    S_O_IDX,
+    X_O_IDX,
+    Y_O_IDX,
+    M_O_IDX,
+    PCH_O_IDX,
+    PCL_O_IDX,
+};
+
+union CPU_Signals
 {
     struct
     {
-        uint32_t HLT : 1;
-
-        uint32_t RI_EN : 1;
-
-        uint32_t RI_B2 : 1;
-        uint32_t RI_B1 : 1;
-        uint32_t RI_B0 : 1;
-
-        uint32_t RO_EN : 1;
-
-        uint32_t RO_B2 : 1;
-        uint32_t RO_B1 : 1;
-        uint32_t RO_B0 : 1;
-
-        uint32_t FI : 1;
-
-        uint32_t M_I : 1;
-        uint32_t M_O : 1;
-
-        uint32_t ALU_OUT : 1;
-
-        uint32_t ALU_B2 : 1;
-        uint32_t ALU_B1 : 1;
-        uint32_t ALU_B0 : 1;
-
-        uint32_t PC_INC : 1; // CE
-        uint32_t PC_I : 1;
-        uint32_t PC_O : 1;
-
+        uint32_t SPO_A : 1;
+        uint32_t X_INC : 1;
+        uint32_t MI : 1;
+        uint32_t res_3 : 2;
+        uint32_t ROR : 1;
+        uint32_t X_DEC : 1;
         uint32_t SP_INC : 1;
         uint32_t SP_DEC : 1;
-        uint32_t SP_O : 1;
-
-        uint32_t CA_SE : 1; // Carry select
-
-        uint32_t X_INC : 1;
-        uint32_t X_DEC : 1;
-
-        uint32_t Y_INC : 1;
-        uint32_t Y_DEC : 1;
-
-        uint32_t IRI0 : 1;
-        uint32_t IRI1 : 1;
-
-        uint32_t ROR : 1;
-        
-        uint32_t reserved : 2;
+        uint32_t res_2 : 1;
+        uint32_t RI_EN : 1;
+        uint32_t ALU_OP : 1;
+        uint32_t IR1I : 1;
+        uint32_t CA_SE : 1;
+        uint32_t DBS : 1;
+        uint32_t PCI : 1;
+        uint32_t RO_B0 : 1;
+        uint32_t RO_B1 : 1;
+        uint32_t RO_B2 : 1;
+        uint32_t BI : 1;
+        uint32_t AI : 1;
+        uint32_t ARO : 1;
+        uint32_t ARI : 1;
+        uint32_t res_1 : 1;
+        uint32_t FI : 1;
+        uint32_t CE : 1;
+        uint32_t res_0 : 1;
+        uint32_t RIO_SE : 1;
+        uint32_t HLT : 1;
+        uint32_t AM_SE : 1;
+        uint32_t ROM_SE : 1;
+        uint32_t INS_END : 1;
     };
     uint32_t val;
 };
 
-class CPU : public CPU_State
+class CPU
 {
 public:
     void init();
     void cycle();
+    void loadProgram(uint8_t newprogram[0x8000]);
+    int loadProgramFromFile(std::string filename);
+    void startExec();
 
-public:
+private:
     void executeSignals();
-    uint8_t &getRegister(uint8_t regNum);
-    uint8_t ALU(uint8_t carry, uint8_t OP, bool shift);
+    uint8_t getRegOut(uint8_t regNum, uint8_t bankRegNum);
+    uint8_t calcALUOut();
 
-public:
-    MEM mem;
-    Signals signals;
-    uint8_t Istate = 0;
-    bool isFeching = true;
-    bool isFechingData = false;
-    bool isComputing = false;
-    int Cycle = 0;
-    uint8_t addrMode = 0, addrMode2 = 0, RI = 0, RO = 0;
+private:
+    bool started = false;
+    uint8_t registers[8];
+    uint8_t A, B, IR0, IR1, AR;
+    uint16_ADDR PC, MAR;
+    MEMORY mem;
+    CPU_Signals signals;
+    bool AdrState = false;
+    bool AdrModeSelect= false;
+    int InsCycle = 0;
+    int AdrCycle = 0;
+    uint8_t RI = 0, RO = 0, ALU_OP = 0;
     struct
     {
         uint8_t carry : 1;
