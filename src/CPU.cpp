@@ -28,14 +28,15 @@ int CPU::loadProgramFromFile(std::string filename)
     begin = file.tellg();
     file.seekg (0, std::ios::end);
     end = file.tellg();
-    file.close();
+    file.seekg (0);
     fprintf(stdout, "Load from File: %s size: %d bytes\n", filename.c_str(), (int)(end - begin));
     if((end - begin) > 0x8000)
     {
         fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
+        return 1;
     }
     uint8_t* program = new uint8_t[0x8000];
-    file.read((char*)program, end - begin);
+    file.read((char*)program, (end - begin));
     file.close();
 
     loadProgram(program);
@@ -45,10 +46,9 @@ int CPU::loadProgramFromFile(std::string filename)
 }
 void CPU::startExec()
 {
-    init();
     signals.HLT = 0;
     InsCycle = AdrCycle = 0;
-    //PC = (uint16_t)((uint16_t)mem.get(0xFFFE) | ((uint16_t)mem.get(0xFFFF) << 8));
+    PC = 0;
 }
 
 void CPU::cycle()
@@ -59,15 +59,12 @@ void CPU::cycle()
     }
     if(AdrState)
     {
-        signals.val = InsSignalTable[AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4)][AdrCycle++];
+        signals.val = AdrSignalTable[AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4)][AdrCycle++];
     }
     else
     {
         signals.val = InsSignalTable[IR0 & 0x3F][InsCycle++];
     }
-    RI = signals.RIO_SE ? ((IR0 & 0xE0) >> 5) : (IR1 & 0x07);
-    RO = signals.RIO_SE ? (IR1 & 0x07) : ((IR0 & 0xE0) >> 5);
-    ALU_OP = IR0 & 0x07;
     executeSignals();
 }
 
@@ -78,14 +75,37 @@ void CPU::executeSignals()
         InsCycle = AdrCycle = 0;
         AdrModeSelect = false;
         started = true;
+        MAR = PC;
+        cycle();
+        return;
     }
+
     if(signals.ROM_SE)
     {
         AdrCycle = 0;
         AdrState = AdrState ? false : true;
     }
+
+    RI = signals.RIO_SE ? ((IR0 & 0xE0) >> 5) : (IR1 & 0x07);
+    RO = signals.RIO_SE ? (IR1 & 0x07) : ((IR0 & 0xE0) >> 5);
+    ALU_OP = IR0 & 0x07;
     int regNum = signals.RO_B0 + (signals.RO_B1 << 1) + (signals.RO_B2 << 2);
     byte DBus = getRegOut(regNum, RO);
+    
+    if(signals.IR1I)
+    {
+        IR1 = mem.get(MAR.addr);
+    }
+    if(InsCycle == 1 && !AdrModeSelect && started)
+    {
+        IR0 = mem.get(MAR.addr);
+    }
+    
+    if(signals.CE)
+    {
+        PC.addr++;
+    }
+
     uint16_ADDR ABus;
     if(signals.SPO_A)
     {
@@ -102,15 +122,11 @@ void CPU::executeSignals()
 
     if(signals.MI)
     {
-        mem.set(PC.addr, DBus);
+        mem.set(MAR.addr, DBus);
     }
     if(signals.AM_SE)
     {
         AdrModeSelect = true;
-    }
-    if(signals.CE)
-    {
-        PC.addr++;
     }
     if(signals.ARI)
     {
@@ -128,14 +144,6 @@ void CPU::executeSignals()
     {
         PC = ABus;
     }
-    if(signals.IR1I)
-    {
-        IR1 = DBus;
-    }
-    if(InsCycle && !AdrModeSelect && started)
-    {
-        IR0 = DBus;
-    }
     if(signals.RI_EN)
     {
         registers[RI] = DBus;
@@ -144,7 +152,7 @@ void CPU::executeSignals()
     {
         registers[REGISTERS_BANK::SP_IDX]--;
     }
-    if(signals.SP_DEC)
+    if(signals.SP_INC)
     {
         registers[REGISTERS_BANK::SP_IDX]++;
     }
@@ -156,6 +164,7 @@ void CPU::executeSignals()
     {
         registers[REGISTERS_BANK::X_IDX]++;
     }
+    MAR = ABus;
 }
 
 uint8_t CPU::getRegOut(uint8_t regNum, uint8_t bankRegNum)
@@ -178,7 +187,7 @@ uint8_t CPU::getRegOut(uint8_t regNum, uint8_t bankRegNum)
         return registers[REGISTERS_BANK::Y_IDX];
         break;
     case REGISTERS_STATE::M_O_IDX:
-        return mem.get(PC.addr);
+        return mem.get(MAR.addr);
         break;
     case REGISTERS_STATE::PCH_O_IDX:
         return PC.H;

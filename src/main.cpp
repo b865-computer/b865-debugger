@@ -23,7 +23,7 @@ public:
     uint64_t HZ = 10;
 };
 
-FQ frequency(100);
+FQ frequency(1000000);
 CPU cpu;
 unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
 

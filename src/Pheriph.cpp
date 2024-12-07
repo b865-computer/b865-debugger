@@ -15,10 +15,6 @@ Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
     if(thread_func)
     {
         thread = std::thread(thread_func, regs, &end);
-        if(thread.joinable())
-        {
-            fprintf(stdout, "Thread joinable\n");
-        }
     }
 }
 
@@ -27,7 +23,7 @@ Pheriph::~Pheriph()
     end = true;
     if(thread.joinable())
     {
-        thread.detach();
+        thread.join();
     }
     if(regs)
     {

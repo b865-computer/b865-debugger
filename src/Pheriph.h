@@ -15,6 +15,8 @@ public:
     std::thread thread;
 };
 
+void IO_func(uint8_t*, bool*); // Pheriph_IO.cpp
+
 extern Pheriph noPheriph;
 
 #endif
