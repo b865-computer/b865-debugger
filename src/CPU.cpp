@@ -12,9 +12,10 @@ void CPU::init()
     signals.HLT = 1;
 }
 
-void CPU::loadProgram(uint8_t newprogram[0x8000])
+int CPU::loadProgram(uint8_t* newprogram, uint32_t len)
 {
-    mem.cpy(0x8000, newprogram, 0x8000);
+    mem.cpy(0x8000, newprogram, (len > 0x8000 ? 0x8000 : len));
+    return 0;
 }
 int CPU::loadProgramFromFile(std::string filename)
 {
@@ -29,17 +30,17 @@ int CPU::loadProgramFromFile(std::string filename)
     file.seekg (0, std::ios::end);
     end = file.tellg();
     file.seekg (0);
-    fprintf(stdout, "Load from File: %s size: %d uint8_ts\n", filename.c_str(), (int)(end - begin));
-    if((end - begin) > 0x8000)
+    uint32_t len = end - begin;
+    if(len > 0x8000)
     {
-        fprintf(stderr, "Error: file size exceeds 0x8000 uint8_ts\n");
+        fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
         return 1;
     }
-    uint8_t* program = new uint8_t[0x8000];
-    file.read((char*)program, (end - begin));
+    uint8_t* program = new uint8_t[len];
+    file.read((char*)program, len);
     file.close();
 
-    loadProgram(program);
+    loadProgram(program, len);
 
     delete program;
     return 0;
@@ -49,6 +50,11 @@ void CPU::startExec()
     signals.HLT = 0;
     InsCycle = AdrCycle = 0;
     PC = 0;
+}
+
+void CPU::stopPheripherials()
+{
+    mem.stopPheripherials();
 }
 
 void CPU::cycle()

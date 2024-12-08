@@ -4,7 +4,6 @@ void IO_func(uint8_t* regs, bool *end)
 {
     if(!regs)
     {
-        _sleep(100);
         fprintf(stderr, "Error: IO_func called with NULL pointer.\n");
         return;
     }
@@ -22,6 +21,5 @@ void IO_func(uint8_t* regs, bool *end)
         }
     }
     fprintf(stdout, "LED: %s\n", regs[1] ? "*" : " ");
-    fprintf(stderr, "IO_func terminated.\n");
     return;
 }

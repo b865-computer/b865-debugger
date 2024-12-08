@@ -2,7 +2,8 @@ CC = g++
 CFLAGS = -g -fdiagnostics-color=always
 
 SRC  = $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
-OBJ = build/main.o build/CPU.o build/MEM.o build/Pheriph.o build/Pheriph_IO.o build/gui.o
+OBJ = build/main.o build/CPU.o build/MEM.o build/Pheriph.o build/Pheriph_IO.o build/gui.o\
+ build/Emulator.o build/Clock.o
 BUILD = build
 
 .PHONY: all

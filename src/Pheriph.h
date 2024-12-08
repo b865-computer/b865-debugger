@@ -10,7 +10,13 @@ class Pheriph
 public:
     Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*));
     ~Pheriph();
+    void stop();
+
+public:
+    bool running = false;
     uint8_t* regs;
+
+private:
     bool end = false;
     std::thread thread;
 };

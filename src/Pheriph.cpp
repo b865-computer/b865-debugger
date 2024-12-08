@@ -15,22 +15,33 @@ Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
     if(thread_func)
     {
         thread = std::thread(thread_func, regs, &end);
+        running = true;
     }
 }
 
 Pheriph::~Pheriph()
 {
-    end = true;
-    if(thread.joinable())
-    {
-        thread.join();
-    }
+    stop();
     if(regs)
     {
         delete regs;
         regs = nullptr;
     }
     return;
+}
+
+void Pheriph::stop()
+{
+    if(!running)
+    {
+        return;
+    }
+    end = true;
+    if(thread.joinable())
+    {
+        thread.join();
+    }
+    running = false;
 }
 
 Pheriph noPheriph(0, nullptr);

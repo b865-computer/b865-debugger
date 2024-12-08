@@ -13,6 +13,7 @@ public:
     uint8_t get(uint16_t address);
     void set(uint16_t address, uint8_t data);
     void cpy(uint16_t firstAdr, uint8_t *_data, uint16_t len);
+    void stopPheripherials();
 
 private:
     void cpyRegion(uint16_t firstAdr, uint8_t *_data, uint16_t len, int regID);

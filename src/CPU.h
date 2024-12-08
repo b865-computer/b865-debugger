@@ -4,7 +4,6 @@
 #define _CPU_H_
 
 #include "Common.h"
-#include "Computer.h"
 #include "MEM.h"
 
 union uint16_ADDR
@@ -90,9 +89,10 @@ class CPU
 public:
     void init();
     void cycle();
-    void loadProgram(uint8_t newprogram[0x8000]);
+    int loadProgram(uint8_t* newprogram, uint32_t len);
     int loadProgramFromFile(std::string filename);
     void startExec();
+    void stopPheripherials();
 
 private:
     void executeSignals();

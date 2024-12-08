@@ -71,6 +71,17 @@ void MEMORY::cpy(uint16_t firstAdr, uint8_t *_data, uint16_t len)
     }
 }
 
+void MEMORY::stopPheripherials()
+{
+    for(int i = 0; i < MEM_REGION_COUNT; i++)
+    {
+        if(MemMap[i].type == MEMMAP::REGION_TYPE::pheriph)
+        {
+            MemMap[i].p.stop();
+        }
+    }
+}
+
 /**
  * Warning: This function does not check if the data fist into the memory region.
  */

@@ -4,6 +4,10 @@
 
 #include "Common.h"
 
-
+class GUI
+{
+public:
+    void init();
+};
 
 #endif
