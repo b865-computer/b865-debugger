@@ -2,10 +2,8 @@
 #ifndef _COMPUTER_H_
 #define _COMPUTER_H_
 
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-
-typedef uint8_t byte;
+#include "Common.h"
+#include "gui.h"
+#include "CPU.h"
 
 #endif // _COMPUTER_H_

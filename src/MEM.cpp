@@ -9,7 +9,7 @@ MEMMAP MEMORY::MemMap[MEM_REGION_COUNT] = {
     MEMMAP(MEMMAP::REGION_TYPE::ram, 0x0300, 0x7D00),
 };
 
-byte MEMORY::get(uint16_t address)
+uint8_t MEMORY::get(uint16_t address)
 {
     for(int i = 0; i < MEM_REGION_COUNT; i++)
     {
@@ -28,7 +28,7 @@ byte MEMORY::get(uint16_t address)
     return 0;
 }
 
-void MEMORY::set(uint16_t address, byte data)
+void MEMORY::set(uint16_t address, uint8_t data)
 {
     for(int i = 0; i < MEM_REGION_COUNT; i++)
     {

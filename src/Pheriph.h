@@ -2,7 +2,7 @@
 
 #ifndef _PERIPH_H_
 #define _PERIPH_H_
-#include "Computer.h"
+#include "Common.h"
 #include <thread>
 
 class Pheriph

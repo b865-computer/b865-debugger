@@ -3,7 +3,7 @@
 #ifndef _CPU_H_
 #define _CPU_H_
 
-#include <iostream>
+#include "Common.h"
 #include "Computer.h"
 #include "MEM.h"
 

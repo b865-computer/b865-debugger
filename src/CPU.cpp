@@ -29,10 +29,10 @@ int CPU::loadProgramFromFile(std::string filename)
     file.seekg (0, std::ios::end);
     end = file.tellg();
     file.seekg (0);
-    fprintf(stdout, "Load from File: %s size: %d bytes\n", filename.c_str(), (int)(end - begin));
+    fprintf(stdout, "Load from File: %s size: %d uint8_ts\n", filename.c_str(), (int)(end - begin));
     if((end - begin) > 0x8000)
     {
-        fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
+        fprintf(stderr, "Error: file size exceeds 0x8000 uint8_ts\n");
         return 1;
     }
     uint8_t* program = new uint8_t[0x8000];
@@ -90,7 +90,7 @@ void CPU::executeSignals()
     RO = signals.RIO_SE ? (IR1 & 0x07) : ((IR0 & 0xE0) >> 5);
     ALU_OP = IR0 & 0x07;
     int regNum = signals.RO_B0 + (signals.RO_B1 << 1) + (signals.RO_B2 << 2);
-    byte DBus = getRegOut(regNum, RO);
+    uint8_t DBus = getRegOut(regNum, RO);
     
     if(signals.IR1I)
     {

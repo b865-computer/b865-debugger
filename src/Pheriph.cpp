@@ -8,7 +8,7 @@ Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
         regs = (uint8_t *)calloc(1, len);
         if (!regs)
         {
-            fprintf(stderr, "Failed to allocate: %i bytes", len);
+            fprintf(stderr, "Failed to allocate: %i uint8_ts", len);
             exit(1);
         }
     }

@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <chrono>
 #include <thread>
-#include "CPU.h"
+#include "Computer.h"
 
 class FQ
 {

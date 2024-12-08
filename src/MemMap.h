@@ -3,7 +3,7 @@
 #ifndef _MEMMAP_H_
 #define _MEMMAP_H_
 
-#include "Computer.h"
+#include "Common.h"
 #include "Pheriph.h"
 
 class MEMMAP
