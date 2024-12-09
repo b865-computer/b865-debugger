@@ -1,6 +1,10 @@
 #include "gui.h"
-#include <GLFW/glfw3.h>
 
-void GUI::init()
+bool GUI::windowClosed()
+{
+    return end;
+}
+
+void GUI::drawText(int x, int y, std::string text)
 {
 }

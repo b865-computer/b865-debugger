@@ -13,23 +13,22 @@ class Emulator
 {
 public:
     Emulator();
-    void init();
+    int init();
     int load(std::string filename);
     int load(std::vector<uint8_t>& programData);
-    void start();
-    void stop();
+    int main();
     std::chrono::nanoseconds getRunTime_ns();
-    bool isRunning();
-    int exitCode();
 
 private:
+    void start();
+    void stop();
+    bool isRunning();
 
 private:
     Clock m_clock;
     CPU& m_cpu;
     GUI m_gui;
     FQ m_fq;
-    int m_exitCode = 0;
 };
 
 #endif // _COMPUTER_H_

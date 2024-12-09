@@ -57,6 +57,11 @@ void CPU::stopPheripherials()
     mem.stopPheripherials();
 }
 
+const CPU_Status &CPU::getStatus()
+{
+    return *this;
+}
+
 void CPU::cycle()
 {
     if (signals.HLT)

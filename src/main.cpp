@@ -6,23 +6,18 @@ Emulator emulator;
 
 int main(int argc, char *argv[])
 {
-    if(argc < 2)
-    {
-        fprintf(stderr, "Input file missing, Usage: %s <input_file>\n", argv[0]);
-        return 1;
-    }
-
-    emulator.init();
-    if(emulator.load(argv[1]))
+    if(emulator.init())
     {
         return 1;
     }
-    emulator.start();
 
-    while(emulator.isRunning())
+    if(argc >= 2)
     {
-        std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
+        if(emulator.load(argv[1]))
+        {
+            return 1;
+        }
     }
 
-    return emulator.exitCode();
+    return emulator.main();
 }

@@ -1,17 +1,17 @@
 #include "Clock.h"
-#include <chrono>
 
 Clock::Clock(void (*_cycle_func)(void))
     : m_fq(1), m_cycle_func(_cycle_func)
 {
 }
 
-void Clock::start()
+void Clock::init()
 {
-    clockThread = std::thread(clockThreadFunc, this, &end);
+    end = false;
+    clockThread = std::thread(clockThreadFunc, this);
 }
 
-void Clock::stop()
+void Clock::terminate()
 {
     m_elapsed = std::chrono::high_resolution_clock::now() - m_start;
     end = true;
@@ -19,6 +19,16 @@ void Clock::stop()
     {
         clockThread.join();
     }
+}
+
+void Clock::setStatus(bool running)
+{
+    m_isRunning = running;
+}
+
+void Clock::singleCycle()
+{
+    m_tick = true;
 }
 
 void Clock::setHZ(uint64_t _HZ)
@@ -51,7 +61,7 @@ unsigned long long Clock::getCycles()
     return counter;
 }
 
-void Clock::clockThreadFunc(bool *_end)
+void Clock::clockThreadFunc()
 {
     bool sleep = (m_fq.sleep > 100);
 
@@ -59,8 +69,19 @@ void Clock::clockThreadFunc(bool *_end)
     m_now = m_start;
     m_elapsed = std::chrono::high_resolution_clock::now() - m_start;
 
-    while (!(*_end))
+    while (!end)
     {
+        if(!m_isRunning)
+        {
+            if(m_tick)
+            {
+                m_tick = false;
+            }
+            else
+            {
+                continue;
+            }
+        }
         m_now = std::chrono::high_resolution_clock::now();
         m_elapsed = m_now - (m_start + std::chrono::nanoseconds(counter * m_fq.ns));
         uint64_t nanoseconds = m_elapsed.count();

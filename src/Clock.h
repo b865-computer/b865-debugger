@@ -3,7 +3,6 @@
 #define _CLOCK_H_
 
 #include "Common.h"
-#include <thread>
 
 class FQ
 {
@@ -36,8 +35,10 @@ class Clock
 {
 public:
     Clock(void (*_cycle_func)(void));
-    void start();
-    void stop();
+    void init();
+    void terminate();
+    void setStatus(bool);
+    void singleCycle();
     void setHZ(uint64_t _HZ);
     uint64_t getHZ();
     unsigned long long getRunTimeCycles_ns();
@@ -45,11 +46,13 @@ public:
     unsigned long long getCycles();
 
 private:
-    void clockThreadFunc(bool *end);
+    void clockThreadFunc();
 
 private:
     unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
     std::thread clockThread;
+    bool m_tick;
+    bool m_isRunning = false;
     bool end;
     FQ m_fq;
     void (*m_cycle_func)(void);

@@ -1,5 +1,4 @@
 #include "Pheriph.h"
-#include <thread>
 
 Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
 {

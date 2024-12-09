@@ -3,7 +3,6 @@
 #ifndef _PERIPH_H_
 #define _PERIPH_H_
 #include "Common.h"
-#include <thread>
 
 class Pheriph
 {

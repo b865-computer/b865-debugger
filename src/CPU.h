@@ -84,22 +84,10 @@ union CPU_Signals
     uint32_t val;
 };
 
-class CPU
+
+class CPU_Status
 {
 public:
-    void init();
-    void cycle();
-    int loadProgram(uint8_t* newprogram, uint32_t len);
-    int loadProgramFromFile(std::string filename);
-    void startExec();
-    void stopPheripherials();
-
-private:
-    void executeSignals();
-    uint8_t getRegOut(uint8_t regNum, uint8_t bankRegNum);
-    uint8_t calcALUOut();
-
-private:
     bool started = false;
     uint8_t registers[8];
     uint8_t A, B, IR0, IR1, AR;
@@ -117,6 +105,26 @@ private:
         uint8_t zero : 1;
         uint8_t negative : 1;
     } flags;
+};
+
+class CPU: private CPU_Status
+{
+public:
+    void init();
+    void cycle();
+    int loadProgram(uint8_t* newprogram, uint32_t len);
+    int loadProgramFromFile(std::string filename);
+    void startExec();
+    void stopPheripherials();
+    const CPU_Status& getStatus();
+
+private:
+    void executeSignals();
+    uint8_t getRegOut(uint8_t regNum, uint8_t bankRegNum);
+    uint8_t calcALUOut();
+
+private:
+
 };
 
 #endif // _CPU_H_
