@@ -84,7 +84,6 @@ union CPU_Signals
     uint32_t val;
 };
 
-
 class CPU_Status
 {
 public:
@@ -92,31 +91,38 @@ public:
     uint8_t registers[8];
     uint8_t A, B, IR0, IR1, AR;
     uint16_ADDR PC, MAR;
-    MEMORY mem;
     CPU_Signals signals;
     bool AdrState = false;
-    bool AdrModeSelect= false;
+    bool AdrModeSelect = false;
     int InsCycle = 0;
     int AdrCycle = 0;
     uint8_t RI = 0, RO = 0, ALU_OP = 0;
-    struct
+    union
     {
-        uint8_t carry : 1;
-        uint8_t zero : 1;
-        uint8_t negative : 1;
+        struct
+        {
+            uint8_t carry : 1;
+            uint8_t zero : 1;
+            uint8_t negative : 1;
+        };
+        uint8_t val;
     } flags;
 };
 
-class CPU: private CPU_Status
+class CPU : private CPU_Status
 {
 public:
+    CPU();
     void init();
     void cycle();
-    int loadProgram(uint8_t* newprogram, uint32_t len);
+    int loadProgram(uint8_t *newprogram, uint32_t len);
     int loadProgramFromFile(std::string filename);
     void startExec();
     void stopPheripherials();
-    const CPU_Status& getStatus();
+    const CPU_Status &getStatus();
+
+public:
+    MEMORY mem;
 
 private:
     void executeSignals();
@@ -124,7 +130,6 @@ private:
     uint8_t calcALUOut();
 
 private:
-
 };
 
 #endif // _CPU_H_

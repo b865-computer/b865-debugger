@@ -22,8 +22,25 @@ void Clock::terminate()
 }
 
 void Clock::setStatus(bool running)
-{
+{  
+    if(m_isRunning != running && running)
+    {
+        m_start = std::chrono::high_resolution_clock::now();
+    }
     m_isRunning = running;
+    if(!m_isRunning)
+    {
+        counter = 0;
+    }
+    while (m_isRunning != m_newStatus)
+    {
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+    }
+}
+
+bool Clock::getStatus()
+{
+    return m_isRunning;
 }
 
 void Clock::singleCycle()
@@ -53,7 +70,7 @@ unsigned long long Clock::getRunTimeCycles_ns()
 
 std::chrono::nanoseconds Clock::getRunTime_ns()
 {
-    return m_elapsed;
+    return m_now - m_start;
 }
 
 unsigned long long Clock::getCycles()
@@ -63,30 +80,34 @@ unsigned long long Clock::getCycles()
 
 void Clock::clockThreadFunc()
 {
-    bool sleep = (m_fq.sleep > 100);
+    bool sleep = (m_fq.sleep > 25);
+    counter = 0;
 
     m_start = std::chrono::high_resolution_clock::now();
     m_now = m_start;
+    auto last_start = m_start;
     m_elapsed = std::chrono::high_resolution_clock::now() - m_start;
 
     while (!end)
     {
+        m_newStatus = m_isRunning;
         if(!m_isRunning)
         {
-            if(m_tick)
-            {
-                m_tick = false;
-            }
-            else
+            m_start = std::chrono::high_resolution_clock::now();
+            last_start = m_start;
+            counter = 0;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
+            if(!m_tick)
             {
                 continue;
             }
         }
         m_now = std::chrono::high_resolution_clock::now();
-        m_elapsed = m_now - (m_start + std::chrono::nanoseconds(counter * m_fq.ns));
-        uint64_t nanoseconds = m_elapsed.count();
-        if (nanoseconds > m_fq.ns)
+        m_elapsed = m_now - last_start;
+        if (m_elapsed.count() > m_fq.ns || m_tick)
         {
+            last_start = m_now;
+            m_tick = false;
             m_cycle_func();
             counter++;
         }

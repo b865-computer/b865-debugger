@@ -1,21 +1,25 @@
 #include "Pheriph.h"
 
-Pheriph::Pheriph(uint16_t len, void (*thread_func)(uint8_t*, bool*))
+Pheriph::Pheriph()
 {
-    if (len)
-    {
-        regs = (uint8_t *)calloc(1, len);
-        if (!regs)
-        {
-            fprintf(stderr, "Failed to allocate: %i uint8_ts", len);
-            exit(1);
-        }
-    }
-    if(thread_func)
-    {
-        thread = std::thread(thread_func, regs, &end);
-        running = true;
-    }
+    initRegs(0);
+}
+
+Pheriph::Pheriph(uint16_t len)
+{
+    initRegs(len);
+}
+
+Pheriph::Pheriph(uint16_t len, std::string name)
+: m_name(name)
+{
+    initRegs(len);
+}
+
+Pheriph::Pheriph(uint16_t len, std::string name, std::vector<std::string> regNames)
+: m_regNames(regNames), m_name(name)
+{
+    initRegs(len);
 }
 
 Pheriph::~Pheriph()
@@ -35,12 +39,21 @@ void Pheriph::stop()
     {
         return;
     }
-    end = true;
-    if(thread.joinable())
-    {
-        thread.join();
-    }
     running = false;
 }
 
-Pheriph noPheriph(0, nullptr);
+/// @brief allocate memory for the registers
+/// @param len number of registers
+void Pheriph::initRegs(int len)
+{
+    regs = nullptr;
+    if (len)
+    {
+        regs = (uint8_t *)calloc(1, len);
+        if (!regs)
+        {
+            fprintf(stderr, "Failed to allocate: %i uint8_ts", len);
+            exit(1);
+        }
+    }
+}

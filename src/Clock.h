@@ -38,21 +38,23 @@ public:
     void init();
     void terminate();
     void setStatus(bool);
+    bool getStatus();
     void singleCycle();
     void setHZ(uint64_t _HZ);
     uint64_t getHZ();
-    unsigned long long getRunTimeCycles_ns();
+    uint64_t getRunTimeCycles_ns();
     std::chrono::nanoseconds getRunTime_ns();
-    unsigned long long getCycles();
+    uint64_t getCycles();
 
 private:
     void clockThreadFunc();
 
 private:
-    unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
+    uint64_t counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
     std::thread clockThread;
     bool m_tick;
     bool m_isRunning = false;
+    bool m_newStatus = false;
     bool end;
     FQ m_fq;
     void (*m_cycle_func)(void);

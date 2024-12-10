@@ -3,6 +3,34 @@
 #include <iostream>
 #include <fstream>
 
+std::vector<std::string> IO_regNames = 
+{
+    "DDR0",
+    "PORT0",
+    "DDR1",
+    "PORT1",
+    "DDR2",
+    "PORT2",
+    "DDR3",
+    "PORT3",
+};
+
+Pheriph IO(0x100, "IO", IO_regNames);
+
+#define MEMORY_REGION_COUNT 4
+
+MEMMAP MemMap[MEMORY_REGION_COUNT] = {
+    MEMMAP(MEMMAP::REGION_TYPE::rom, 0x8000, 0x8000),
+    MEMMAP(MEMMAP::REGION_TYPE::ram, 0, 0x0200),
+    MEMMAP(&IO, 0x0200, 0x100),
+    MEMMAP(MEMMAP::REGION_TYPE::ram, 0x0300, 0x7D00),
+};
+
+CPU::CPU()
+: mem(MemMap, MEMORY_REGION_COUNT)
+{
+}
+
 void CPU::init()
 {
     A = B = PC = 0;
@@ -48,8 +76,13 @@ int CPU::loadProgramFromFile(std::string filename)
 void CPU::startExec()
 {
     signals.HLT = 0;
-    InsCycle = AdrCycle = 0;
+    IR0 = IR1 = A = B = flags.val = InsCycle = AdrCycle = 0;
     PC = 0;
+    for(int i = 0; i < 8; i++)
+    {
+        registers[i] = 0;
+    }
+    started = false;
 }
 
 void CPU::stopPheripherials()

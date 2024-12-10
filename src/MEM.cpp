@@ -1,13 +1,10 @@
 #include "MEM.h"
 
-Pheriph IO(0x100, IO_func);
-
-MEMMAP MEMORY::MemMap[MEM_REGION_COUNT] = {
-    MEMMAP(MEMMAP::REGION_TYPE::rom, 0x8000, 0x8000),
-    MEMMAP(MEMMAP::REGION_TYPE::ram, 0, 0x0200),
-    MEMMAP(&IO, 0x0200, 0x100),
-    MEMMAP(MEMMAP::REGION_TYPE::ram, 0x0300, 0x7D00),
-};
+MEMORY::MEMORY(MEMMAP* _MemMap, int count)
+: MemMap(_MemMap)
+{
+    m_region_count = count;
+}
 
 uint8_t MEMORY::get(uint16_t address)
 {
@@ -80,6 +77,33 @@ void MEMORY::stopPheripherials()
             MemMap[i].p.stop();
         }
     }
+}
+
+Pheriph **MEMORY::getPheripherials(int* _count)
+{
+    int count = 0;
+
+    for(int i = 0; i < MEM_REGION_COUNT; i++)
+    {
+        if(MemMap[i].type == MEMMAP::REGION_TYPE::pheriph)
+        {
+            count++;
+        }
+    }
+
+    (*_count) = count;
+    Pheriph** pheriph_list = new Pheriph*[count];
+
+    count = 0;
+    for(int i = 0; i < MEM_REGION_COUNT; i++)
+    {
+        if(MemMap[i].type == MEMMAP::REGION_TYPE::pheriph)
+        {
+            pheriph_list[count] = &MemMap[i].p;
+            count++;
+        }
+    }
+    return pheriph_list;
 }
 
 /**

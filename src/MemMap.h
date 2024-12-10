@@ -6,6 +6,8 @@
 #include "Common.h"
 #include "Pheriph.h"
 
+static Pheriph noPheriph;
+
 class MEMMAP
 {
 public:
@@ -18,6 +20,7 @@ public:
     {
         start = _start;
         len = _len;
+        type = type;
     }
     inline MEMMAP(Pheriph* _p, uint16_t _start, uint32_t _len)
     :p(*_p)

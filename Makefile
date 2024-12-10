@@ -1,18 +1,18 @@
 CC = g++
-INCLUDEPATH = -Ilib/glad/include -Ilib/imgui -Ilib/imgui/backends
+INCLUDEPATH = -Ilib/imgui -Ilib/imgui/backends -Ilib/ImGuiFileDialog -Ilib/stb_image
 CFLAGS = -g -fdiagnostics-color=always $(INCLUDEPATH)
-LDFLAGS = -lglfw3 -lopengl32 -lgdi32 -lshell32
-IMGUI_SRC  += $(wildcard lib/imgui/imgui*.cpp)
-OBJ = build/main.o build/CPU.o build/MEM.o build/Pheriph.o build/Pheriph_IO.o build/gui.o\
+LDFLAGS = -lglfw3 -lopengl32
+LIB_SRC += $(wildcard lib/imgui/imgui*.cpp) $(wildcard lib/ImGuiFileDialog/ImGuiFileDialog*.cpp)
+OBJ = build/main.o build/CPU.o build/MEM.o build/Pheriph.o build/gui.o\
 	build/Emulator.o build/Clock.o build/gui_main.o
-OBJ += lib/imgui/backends/imgui_impl_glfw.o lib/imgui/backends/imgui_impl_opengl3.o $(IMGUI_SRC:.cpp=.o)
+OBJ += lib/imgui/backends/imgui_impl_glfw.o lib/imgui/backends/imgui_impl_opengl3.o $(LIB_SRC:.cpp=.o)
 
 .PHONY: all
 
 all: build run 
 
 run: emulator.exe
-	./emulator.exe program.out
+	./emulator.exe
 
 build: emulator.exe
 

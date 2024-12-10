@@ -8,7 +8,7 @@ void cycle(void)
 }
 
 Emulator::Emulator()
-: m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_gui(cpu.getStatus())
+: m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_gui(cpu.getStatus(), m_clock, cpu)
 {
     m_clock.setHZ(m_fq.HZ);
 }
@@ -43,7 +43,7 @@ int Emulator::main()
 void Emulator::start()
 {
     m_cpu.startExec();
-    m_clock.setStatus(true);
+    m_clock.setStatus(false);
 }
 
 void Emulator::stop()
@@ -67,9 +67,6 @@ bool Emulator::isRunning()
     else
     {
         stop();
-        // fprintf(stdout,"%i cycles in %f seconds, %iHz, target: %iHz\n", m_clock.getCycles(),
-        //     (double)m_clock.getRunTime_ns().count() / 1e9,
-        //     (int)(m_clock.getCycles() / ((double)m_clock.getRunTime_ns().count() / 1e9)), m_fq.HZ);
     }
     return false;
 }
