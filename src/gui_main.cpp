@@ -318,6 +318,8 @@ int GUI::mainLoop()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+
         // ImGui::GetIO();
 
         renderMenu();
@@ -385,7 +387,8 @@ int GUI::mainLoop()
         }
         ImGui::End();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
         if (ImGui::Begin("ToolBar", nullptr, flags))
         {
             ImGui::SetWindowPos(ImVec2(display_w > 200 ? 200 : display_w, 20));
@@ -417,13 +420,15 @@ int GUI::mainLoop()
         }
         ImGui::End();
 
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
 
         m_clock.setStatus(isRunning);
 
         if (customHzInput)
         {
-            ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+            ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+            ImGui::SetWindowPos(ImVec2(265, 165));
+            ImGui::SetWindowSize(ImVec2(195, 80));
             ImGui::Begin("Frequency:", &customHzInput, flags); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
             ImGui::InputInt("Hz", (int *)&customFrequencyHZ);
             if (ImGui::Button("Ok"))
@@ -447,9 +452,11 @@ int GUI::mainLoop()
             IGFD::FileDialogConfig config;
             config.flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
             config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".out,.bin", config);
+            ImGuiFileDialog::Instance()->OpenDialog("0", "Choose File", ".out,.bin", config);
             // display
-            if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
+            if (ImGuiFileDialog::Instance()->Display("0", config.flags,
+                ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 20 ? display_h - 20 : 0),
+                ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 20 ? display_h - 20 : 0)))
             {
                 if (ImGuiFileDialog::Instance()->IsOk())
                 {
@@ -465,6 +472,8 @@ int GUI::mainLoop()
                 fileOpenInput = false;
             }
         }
+
+        ImGui::PopStyleVar();
 
         ImGui::Render();
         glViewport(0, 0, display_w, display_h);
