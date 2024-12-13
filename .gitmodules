@@ -6,4 +6,4 @@
 	url = https://github.com/aiekick/ImGuiFileDialog.git
 [submodule "lib/ImGuiColorTextEdit"]
 	path = lib/ImGuiColorTextEdit
-	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+	url = https://github.com/Rbel12b/ImGuiColorTextEdit.git
