@@ -3,16 +3,16 @@
 #include <iostream>
 #include <fstream>
 
-std::vector<std::string> IO_regNames = 
-{
-    "DDR0",
-    "PORT0",
-    "DDR1",
-    "PORT1",
-    "DDR2",
-    "PORT2",
-    "DDR3",
-    "PORT3",
+std::vector<std::string> IO_regNames =
+    {
+        "DDR0",
+        "PORT0",
+        "DDR1",
+        "PORT1",
+        "DDR2",
+        "PORT2",
+        "DDR3",
+        "PORT3",
 };
 
 Pheriph IO(0x100, "IO", IO_regNames);
@@ -27,7 +27,7 @@ MEMMAP MemMap[MEMORY_REGION_COUNT] = {
 };
 
 CPU::CPU()
-: mem(MemMap, MEMORY_REGION_COUNT)
+    : mem(MemMap, MEMORY_REGION_COUNT)
 {
 }
 
@@ -40,7 +40,7 @@ void CPU::init()
     signals.HLT = 1;
 }
 
-int CPU::loadProgram(uint8_t* newprogram, uint32_t len)
+int CPU::loadProgram(uint8_t *newprogram, uint32_t len)
 {
     mem.cpy(0x8000, newprogram, (len > 0x8000 ? 0x8000 : len));
     return 0;
@@ -48,29 +48,29 @@ int CPU::loadProgram(uint8_t* newprogram, uint32_t len)
 int CPU::loadProgramFromFile(std::string filename)
 {
     std::ifstream file(filename, std::ios::binary | std::ios::in);
-    if(!file.is_open())
+    if (!file.is_open())
     {
         fprintf(stderr, "Error: unable to open file %s\n", filename.c_str());
         return 1;
     }
     std::streampos begin, end;
     begin = file.tellg();
-    file.seekg (0, std::ios::end);
+    file.seekg(0, std::ios::end);
     end = file.tellg();
-    file.seekg (0);
+    file.seekg(0);
     uint32_t len = end - begin;
-    if(len > 0x8000)
+    if (len > 0x8000)
     {
         fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
         return 1;
     }
-    uint8_t* program = new uint8_t[len];
-    file.read((char*)program, len);
+    uint8_t *program = new uint8_t[len];
+    file.read((char *)program, len);
     file.close();
 
     loadProgram(program, len);
 
-    delete program;
+    delete[] program;
     return 0;
 }
 void CPU::startExec()
@@ -78,7 +78,7 @@ void CPU::startExec()
     signals.HLT = 0;
     IR0 = IR1 = A = B = flags.val = InsCycle = AdrCycle = 0;
     PC = 0;
-    for(int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++)
     {
         registers[i] = 0;
     }
@@ -101,7 +101,7 @@ void CPU::cycle()
     {
         return;
     }
-    if(AdrState)
+    if (AdrState)
     {
         signals.val = AdrSignalTable[AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4)][AdrCycle++];
     }
@@ -114,7 +114,7 @@ void CPU::cycle()
 
 void CPU::executeSignals()
 {
-    if(signals.INS_END)
+    if (signals.INS_END)
     {
         InsCycle = AdrCycle = 0;
         AdrModeSelect = false;
@@ -124,7 +124,7 @@ void CPU::executeSignals()
         return;
     }
 
-    if(signals.ROM_SE)
+    if (signals.ROM_SE)
     {
         AdrCycle = 0;
         AdrState = AdrState ? false : true;
@@ -135,27 +135,27 @@ void CPU::executeSignals()
     ALU_OP = IR0 & 0x07;
     int regNum = signals.RO_B0 + (signals.RO_B1 << 1) + (signals.RO_B2 << 2);
     uint8_t DBus = getRegOut(regNum, RO);
-    
-    if(signals.IR1I)
+
+    if (signals.IR1I)
     {
         IR1 = mem.get(MAR.addr);
     }
-    if(InsCycle == 1 && !AdrModeSelect && started)
+    if (InsCycle == 1 && !AdrModeSelect && started)
     {
         IR0 = mem.get(MAR.addr);
     }
-    
-    if(signals.CE)
+
+    if (signals.CE)
     {
         PC.addr++;
     }
 
     uint16_ADDR ABus;
-    if(signals.SPO_A)
+    if (signals.SPO_A)
     {
         ABus = (registers[REGISTERS_BANK::SP_IDX] + 0x100);
     }
-    else if(signals.ARO)
+    else if (signals.ARO)
     {
         ABus = AR | (DBus << 8);
     }
@@ -164,47 +164,47 @@ void CPU::executeSignals()
         ABus = PC.addr;
     }
 
-    if(signals.MI)
+    if (signals.MI)
     {
         mem.set(MAR.addr, DBus);
     }
-    if(signals.AM_SE)
+    if (signals.AM_SE)
     {
         AdrModeSelect = true;
     }
-    if(signals.ARI)
+    if (signals.ARI)
     {
         AR = DBus;
     }
-    if(signals.AI)
+    if (signals.AI)
     {
         A = DBus;
     }
-    if(signals.BI)
+    if (signals.BI)
     {
         B = DBus;
     }
-    if(signals.PCI)
+    if (signals.PCI)
     {
         PC = ABus;
     }
-    if(signals.RI_EN)
+    if (signals.RI_EN)
     {
         registers[RI] = DBus;
     }
-    if(signals.SP_DEC)
+    if (signals.SP_DEC)
     {
         registers[REGISTERS_BANK::SP_IDX]--;
     }
-    if(signals.SP_INC)
+    if (signals.SP_INC)
     {
         registers[REGISTERS_BANK::SP_IDX]++;
     }
-    if(signals.X_DEC)
+    if (signals.X_DEC)
     {
         registers[REGISTERS_BANK::X_IDX]--;
     }
-    if(signals.X_INC)
+    if (signals.X_INC)
     {
         registers[REGISTERS_BANK::X_IDX]++;
     }
@@ -254,7 +254,7 @@ uint8_t CPU::calcALUOut()
     int carry = signals.CA_SE ? flags.carry : ((OP & 2) >> 1);
     int B_val = signals.DBS ? B : 1;
     uint16_t val = 0;
-    if(signals.ROR)
+    if (signals.ROR)
     {
         uint8_t val = (A >> 1) + (carry << 7);
         carry = A & 1;
@@ -276,24 +276,24 @@ uint8_t CPU::calcALUOut()
             val = (A ^ B_val);
             break;
         case 4:
-            val =  (A | B_val);
+            val = (A | B_val);
             break;
         case 5:
-            val =  ~(A | B_val);
+            val = ~(A | B_val);
             break;
         case 6:
-            val =  ~(A & B_val);
+            val = ~(A & B_val);
             break;
         case 7:
-            val =  (A & B_val);
+            val = (A & B_val);
             break;
         default:
-            val =  0;
+            val = 0;
             break;
         }
         carry = (val & 0x100) ? 1 : 0;
     }
-    if(signals.FI)
+    if (signals.FI)
     {
         flags.carry = carry;
         flags.zero = (val) ? 1 : 0;

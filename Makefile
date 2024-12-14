@@ -16,11 +16,12 @@ INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_IMGUIFILEDIALOG) -I
 
 CFLAGS = -g -fdiagnostics-color=always $(INCLUDEPATH)
 CFLIBFLAGS = $(CFLAGS)
-CFLAGS += $(INCLUDEPATH)
-LDFLAGS = -lglfw3 -lopengl32
+LDFLAGS = -lglfw3 -lopengl32 -ljsoncpp
 
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp,build/%.o,$(SRC))
+
+LIBOBJ = $(LIB_IMGUICOLOTEXTEDIT_OBJ) $(LIB_IMGUIFILEDIALOG_OBJ) $(LIB_IMGUI_OBJ)
 
 .PHONY: all
 
@@ -29,21 +30,13 @@ all: build run
 run: emulator.exe
 	./emulator.exe
 
-build: libs emulator.exe
+build: emulator.exe
 
-emulator.exe: libs $(OBJ)
+emulator.exe: $(LIBOBJ) $(OBJ)
 	$(CC) -o emulator.exe $(OBJ) $(LIB_IMGUI_OBJ) $(LIB_IMGUIFILEDIALOG_OBJ) $(LIB_IMGUICOLOTEXTEDIT_OBJ) $(LDFLAGS)
 
 build/%.o: src/%.cpp $(wildcard src/*.h)
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-libs: imgui ImGuiFileDialog ImGuiColorTextEdit
-
-imgui: $(LIB_IMGUI_OBJ)
-
-ImGuiFileDialog: $(LIB_IMGUIFILEDIALOG_OBJ)
-
-ImGuiColorTextEdit: $(LIB_IMGUICOLOTEXTEDIT_OBJ)
 
 lib/%.o: lib/%.cpp $(wildcard lib/**/.h)
 	$(CC) $(CFLIBFLAGS) -o $@ -c $<

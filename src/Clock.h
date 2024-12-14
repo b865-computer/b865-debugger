@@ -9,7 +9,7 @@ class FQ
 public:
     inline FQ(uint64_t _HZ)
     {
-        if(_HZ == 0)
+        if (_HZ == 0)
         {
             _HZ = 1000000;
         }
@@ -23,7 +23,11 @@ public:
     {
         HZ = _HZ;
         ns = 1000000000 / HZ;
-        sleep = ns / 5;
+        sleep = 50;
+        if (ns < 250)
+        {
+            sleep = 0;
+        }
         return;
     }
     uint64_t sleep = 10;

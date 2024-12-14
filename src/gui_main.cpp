@@ -5,6 +5,7 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include "gui.h"
+#include "TextEditor.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -12,22 +13,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void error_callback(int error, const char *description)
-{
-    fprintf(stderr, "Error: %s\n", description);
-}
+TextEditor editor;
 
+const char *noOpenedFileText = "No opened souce files.";
 bool customHzInput = false;
 bool isRunning = false;
 uint64_t customFrequencyHZ = 1;
 bool fileOpenInput = false;
 bool showRealFrequency = false;
+std::string openedFileName = "";
 
 enum FileInputType
 {
-    programFileInput = 0,
+    programFile = 0,
+    projectFile = 0,
 };
-FileInputType fileOpenInputType = programFileInput;
+FileInputType fileOpenInputType = projectFile;
+
+int toolBarImage_width = 0;
+int toolBarImage_height = 0;
+GLuint resetImage_id = 0;
+GLuint stopImage_id = 0;
+GLuint startImage_id = 0;
+GLuint tickImage_id = 0;
+
+void error_callback(int error, const char *description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
 
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool GUI::LoadTextureFromMemory(const void *data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height)
@@ -84,7 +97,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_O && control && action == GLFW_PRESS)
     {
         fileOpenInput = true;
-        fileOpenInputType = programFileInput;
+        fileOpenInputType = projectFile;
     }
     if (key == GLFW_KEY_S && control && action == GLFW_PRESS)
     {
@@ -103,15 +116,10 @@ void GUI::terminate()
     glfwTerminate();
 }
 
-int toolBarImage_width = 0;
-int toolBarImage_height = 0;
-GLuint resetImage_id = 0;
-GLuint stopImage_id = 0;
-GLuint startImage_id = 0;
-GLuint tickImage_id = 0;
-
 int GUI::init()
 {
+    m_pheripherials = m_cpu.mem.getPheripherials(&m_pheriphCount);
+
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit())
@@ -191,6 +199,11 @@ int GUI::init()
     ret = LoadTextureFromFile("./share/tick.png", &tickImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
 
+    editor.SetText(noOpenedFileText);
+    editor.SetReadOnly(false);
+    editor.SetTabSize(4);
+    editor.SetImGuiChildIgnored(true);
+
     return 0;
 }
 
@@ -200,10 +213,15 @@ void GUI::renderMenu()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Open Program", "Ctrl+O"))
+            if (ImGui::MenuItem("Open Project", "Ctrl+O"))
             {
                 fileOpenInput = true;
-                fileOpenInputType = programFileInput;
+                fileOpenInputType = projectFile;
+            }
+            if (ImGui::MenuItem("Open .hex Program"))
+            {
+                fileOpenInput = true;
+                fileOpenInputType = programFile;
             }
             if (ImGui::MenuItem("Exit", "Alt+F4"))
             {
@@ -328,10 +346,10 @@ int GUI::mainLoop()
 
         if (ImGui::Begin("Status", nullptr, flags))
         {
-            ImGui::SetWindowPos(ImVec2(0, 20));
-            ImGui::SetWindowSize(ImVec2(display_w > 200 ? 200 : display_w, display_h - 20));
+            ImGui::SetWindowPos(ImVec2(0, 44));
+            ImGui::SetWindowSize(ImVec2(display_w > 200 ? 200 : display_w, display_h - 44));
             ImGui::Text("Frequency: %lliHz", m_frequencyHZ);
-            if(showRealFrequency)
+            if (showRealFrequency)
             {
                 ImGui::Text("Real freq. %.0fHz", ((double)m_clock.getCycles() / ((double)m_clock.getRunTime_ns().count() / 1e9)));
             }
@@ -391,8 +409,8 @@ int GUI::mainLoop()
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
         if (ImGui::Begin("ToolBar", nullptr, flags))
         {
-            ImGui::SetWindowPos(ImVec2(display_w > 200 ? 200 : display_w, 20));
-            ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 16));
+            ImGui::SetWindowPos(ImVec2(0, 20));
+            ImGui::SetWindowSize(ImVec2(display_w < 200 ? display_w : 200, 30));
             if (ImGui::ImageButton("reset", resetImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
             {
                 m_cpu.startExec();
@@ -422,6 +440,116 @@ int GUI::mainLoop()
 
         ImGui::PopStyleVar(2);
 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+        if (ImGui::Begin("FilesOpened", nullptr, flags))
+        {
+            ImGui::SetWindowPos(ImVec2(display_w > 200 ? 200 : display_w, 20));
+            ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 30));
+            if (sourceFileNames.size() == 1)
+            {
+                editor.SetText(noOpenedFileText);
+            }
+            for (size_t i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
+            {
+                if (ImGui::Button(sourceFileNames[i].c_str()))
+                {
+                    if (openedFileName != sourceFileNames[i])
+                    {
+                        openedFileName = sourceFileNames[i];
+                        std::ifstream file(projectPath + openedFileName);
+                        if (file.is_open())
+                        {
+                            std::streampos begin, end;
+                            begin = file.tellg();
+                            file.seekg(0, std::ios::end);
+                            end = file.tellg();
+                            file.seekg(0);
+                            uint32_t len = end - begin;
+                            char *text = new char[len];
+                            file.read((char *)text, len);
+                            file.close();
+
+                            editor.SetText(text);
+                            delete[] text;
+                        }
+                        else
+                        {
+                            fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+                        }
+                    }
+                }
+                ImGui::SameLine();
+            }
+        }
+        ImGui::End();
+
+        ImGui::PopStyleVar(2);
+
+        ImGui::SetNextWindowPos(ImVec2(200, 44));
+        ImGui::SetNextWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0));
+
+        if (fileOpenInput)
+        {
+            // open Dialog Simple
+            IGFD::FileDialogConfig config;
+            config.flags = ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+            config.path = ".";
+            std::string filters;
+            if (fileOpenInputType == projectFile)
+            {
+                filters = ".json";
+            }
+            else
+            {
+                filters = ".hex";
+            }
+            ImGuiFileDialog::Instance()->OpenDialog("0", "Choose File", filters.c_str(), config);
+
+            // display
+            if (ImGuiFileDialog::Instance()->Display("0", flags,
+                                                     ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0),
+                                                     ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0)))
+            {
+                if (ImGuiFileDialog::Instance()->IsOk())
+                {
+                    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                    if (fileOpenInputType == projectFile)
+                    {
+                        NewProjectOpened = true;
+                        projectFileName = filePathName;
+                        for (int i = (filePathName.length() - 1); i > 0; i--)
+                        {
+                            char c = filePathName.at(i);
+                            if (c == '/' || c == '\\')
+                            {
+                                projectPath = filePathName.substr(0, i + 1);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        isRunning = false;
+                        m_clock.setStatus(isRunning);
+                        m_cpu.loadProgramFromFile(filePathName);
+                        m_cpu.startExec();
+                        editor.SetText(noOpenedFileText);
+                    }
+                }
+                // close
+                ImGuiFileDialog::Instance()->Close();
+
+                fileOpenInput = false;
+            }
+        }
+        else
+        {
+            ImGui::Begin("editor", nullptr, flags);
+            editor.Render("");
+            ImGui::End();
+        }
+
         m_clock.setStatus(isRunning);
 
         if (customHzInput)
@@ -444,33 +572,6 @@ int GUI::mainLoop()
             m_clock.setStatus(false);
             m_clock.setHZ(m_frequencyHZ);
             m_clock.setStatus(running);
-        }
-
-        if (fileOpenInput)
-        {
-            // open Dialog Simple
-            IGFD::FileDialogConfig config;
-            config.flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
-            config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog("0", "Choose File", ".out,.bin", config);
-            // display
-            if (ImGuiFileDialog::Instance()->Display("0", config.flags,
-                ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 20 ? display_h - 20 : 0),
-                ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 20 ? display_h - 20 : 0)))
-            {
-                if (ImGuiFileDialog::Instance()->IsOk())
-                {
-                    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                    isRunning = false;
-                    m_clock.setStatus(isRunning);
-                    m_cpu.loadProgramFromFile(filePathName);
-                    m_cpu.startExec();
-                }
-                // close
-                ImGuiFileDialog::Instance()->Close();
-
-                fileOpenInput = false;
-            }
         }
 
         ImGui::PopStyleVar();

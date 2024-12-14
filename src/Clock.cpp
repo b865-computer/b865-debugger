@@ -22,13 +22,13 @@ void Clock::terminate()
 }
 
 void Clock::setStatus(bool running)
-{  
-    if(m_isRunning != running && running)
+{
+    if (m_isRunning != running && running)
     {
         m_start = std::chrono::high_resolution_clock::now();
     }
     m_isRunning = running;
-    if(!m_isRunning)
+    if (!m_isRunning)
     {
         counter = 0;
     }
@@ -91,13 +91,13 @@ void Clock::clockThreadFunc()
     while (!end)
     {
         m_newStatus = m_isRunning;
-        if(!m_isRunning)
+        if (!m_isRunning)
         {
             m_start = std::chrono::high_resolution_clock::now();
             last_start = m_start;
             counter = 0;
             std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
-            if(!m_tick)
+            if (!m_tick)
             {
                 continue;
             }

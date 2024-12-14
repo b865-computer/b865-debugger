@@ -7,3 +7,6 @@
 [submodule "lib/ImGuiColorTextEdit"]
 	path = lib/ImGuiColorTextEdit
 	url = https://github.com/Rbel12b/ImGuiColorTextEdit.git
+[submodule "lib/libintelhex"]
+	path = lib/libintelhex
+	url = https://github.com/bfoz/libintelhex.git

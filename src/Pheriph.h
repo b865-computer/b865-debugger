@@ -19,7 +19,7 @@ private:
 
 public:
     bool running = false;
-    uint8_t* regs;
+    uint8_t *regs;
     std::string m_name;
     std::vector<std::string> m_regNames;
 

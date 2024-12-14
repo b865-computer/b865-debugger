@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "CPU.h"
 #include "Clock.h"
+#include "Debugger.h"
 
 void cycle();
 
@@ -15,7 +16,7 @@ public:
     Emulator();
     int init();
     int load(std::string filename);
-    int load(std::vector<uint8_t>& programData);
+    int load(std::vector<uint8_t> &programData);
     int main();
     std::chrono::nanoseconds getRunTime_ns();
 
@@ -26,9 +27,10 @@ private:
 
 private:
     Clock m_clock;
-    CPU& m_cpu;
+    CPU &m_cpu;
     GUI m_gui;
     FQ m_fq;
+    DebuggerData m_debuggerData;
 };
 
 #endif // _COMPUTER_H_

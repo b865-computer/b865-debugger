@@ -1,15 +1,18 @@
 #include "gui.h"
 
-
-GUI::GUI(const CPU_Status &status, Clock &clock, CPU& cpu)
+GUI::GUI(const CPU_Status &status, Clock &clock, CPU &cpu)
     : m_CPUStatus(status), m_clock(clock), m_cpu(cpu)
 {
-    m_pheripherials = m_cpu.mem.getPheripherials(&m_pheriphCount);
+    m_pheripherials = nullptr;
+    m_pheriphCount = 0;
 }
 
 GUI::~GUI()
 {
-    delete[] m_pheripherials;
+    if (m_pheripherials)
+    {
+        delete[] m_pheripherials;
+    }
 }
 
 bool GUI::windowClosed()

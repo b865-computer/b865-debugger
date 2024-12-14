@@ -8,7 +8,7 @@ void cycle(void)
 }
 
 Emulator::Emulator()
-: m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_gui(cpu.getStatus(), m_clock, cpu)
+    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_gui(cpu.getStatus(), m_clock, cpu)
 {
     m_clock.setHZ(m_fq.HZ);
 }
@@ -33,9 +33,18 @@ int Emulator::load(std::vector<uint8_t> &programData)
 int Emulator::main()
 {
     start();
-    while(isRunning())
+    while (isRunning())
     {
         m_gui.mainLoop();
+        if (m_gui.NewProjectOpened)
+        {
+            m_gui.NewProjectOpened = false;
+            m_debuggerData.init(m_gui.projectFileName);
+            m_gui.sourceFileNames = m_debuggerData.getFileNames();
+            m_clock.setStatus(false);
+            m_cpu.loadProgramFromFile(m_gui.projectPath + m_gui.sourceFileNames[0]);
+            m_cpu.startExec();
+        }
     }
     return 0;
 }
@@ -60,7 +69,7 @@ std::chrono::nanoseconds Emulator::getRunTime_ns()
 
 bool Emulator::isRunning()
 {
-    if(!m_gui.windowClosed())
+    if (!m_gui.windowClosed())
     {
         return true;
     }

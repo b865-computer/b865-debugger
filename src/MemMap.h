@@ -11,7 +11,8 @@ static Pheriph noPheriph;
 class MEMMAP
 {
 public:
-    enum REGION_TYPE{
+    enum REGION_TYPE
+    {
         pheriph,
         ram,
         rom
@@ -22,8 +23,8 @@ public:
         len = _len;
         type = type;
     }
-    inline MEMMAP(Pheriph* _p, uint16_t _start, uint32_t _len)
-    :p(*_p)
+    inline MEMMAP(Pheriph *_p, uint16_t _start, uint32_t _len)
+        : p(*_p)
     {
         type = REGION_TYPE::pheriph;
         start = _start;
