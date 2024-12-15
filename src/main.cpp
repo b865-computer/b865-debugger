@@ -1,75 +1,23 @@
 #include <iostream>
 #include <cstdio>
-#include <chrono>
-#include <thread>
-#include "CPU.h"
+#include "Emulator.h"
 
-class FQ
-{
-public:
-    inline FQ(uint64_t _HZ)
-    {
-        set(_HZ);
-    }
-    inline void set(uint64_t _HZ)
-    {
-        HZ = _HZ;
-        ns = 1000000000 / HZ;
-        sleep = ns / 5;
-        return;
-    }
-    uint64_t sleep = 10;
-    uint64_t ns = 10;
-    uint64_t HZ = 10;
-};
-
-FQ frequency(1000000);
-CPU cpu;
-unsigned long long counter = 0; // not it's not gonna overflow for 584 years. (at 1 GHz)
+Emulator emulator;
 
 int main(int argc, char *argv[])
 {
-    if(argc < 2)
-    {
-        fprintf(stderr, "Input file missing, Usage: %s <input_file>\n", argv[0]);
-        return 1;
-    }
-
-    cpu.init();
-    if(cpu.loadProgramFromFile(argv[1]))
+    if(emulator.init())
     {
         return 1;
     }
-    cpu.startExec();
 
-    bool sleep = (frequency.sleep > 100);
-
-    fprintf(stdout, "Start... sleep: %s\n", sleep ? "true" : "false");
-
-    auto start = std::chrono::high_resolution_clock::now();
-    auto now = start;
-    auto elapsed = std::chrono::high_resolution_clock::now() - start;
-    
-    while (1)
+    if(argc >= 2)
     {
-        now = std::chrono::high_resolution_clock::now();
-        elapsed = now - (start + std::chrono::nanoseconds(counter * frequency.ns));
-        uint64_t nanoseconds = elapsed.count();
-        if (nanoseconds > frequency.ns)
+        if(emulator.load(argv[1]))
         {
-            cpu.cycle();
-            counter++;
-            if(counter >= frequency.HZ * 1)
-            {
-                auto end = std::chrono::high_resolution_clock::now();
-                fprintf(stdout,"Finished, time: %lldns\n", (end - start).count());
-                return 0;
-            }
-        }
-        if(sleep)
-        {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(frequency.sleep));
+            return 1;
         }
     }
-    return 0;
+
+    return emulator.main();
 }
