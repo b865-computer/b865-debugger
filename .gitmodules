@@ -1,12 +1,12 @@
 [submodule "lib/imgui"]
 	path = lib/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "lib/ImGuiFileDialog"]
-	path = lib/ImGuiFileDialog
-	url = https://github.com/aiekick/ImGuiFileDialog.git
-[submodule "lib/ImGuiColorTextEdit"]
-	path = lib/ImGuiColorTextEdit
-	url = https://github.com/Rbel12b/ImGuiColorTextEdit.git
 [submodule "lib/libintelhex"]
 	path = lib/libintelhex
 	url = https://github.com/bfoz/libintelhex.git
+[submodule "lib/zep"]
+	path = lib/zep
+	url = https://github.com/Rezonality/zep.git
+[submodule "lib/ImGuiFileDialog"]
+	path = lib/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
