@@ -43,7 +43,7 @@ void error_callback(int error, const char *description)
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool GUI::LoadTextureFromMemory(const void *data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height)
+bool GUI::LoadTextureFromMemory(const void *data, unsigned long long  data_size, GLuint *out_texture, int *out_width, int *out_height)
 {
     // Load from file
     int image_width = 0;
@@ -80,7 +80,7 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
     if (f == NULL)
         return false;
     fseek(f, 0, SEEK_END);
-    size_t file_size = (size_t)ftell(f);
+    unsigned long long  file_size = (unsigned long long )ftell(f);
     if (file_size == -1)
         return false;
     fseek(f, 0, SEEK_SET);
@@ -361,6 +361,7 @@ int GUI::mainLoop()
                 ImGui::Text("B: 0x%02X", m_CPUStatus.B);
                 ImGui::Text("IR0: 0x%02X", m_CPUStatus.IR0);
                 ImGui::Text("IR1: 0x%02X", m_CPUStatus.IR1);
+                ImGui::Text("AR: 0x%02X", m_CPUStatus.AR);
                 ImGui::Text("ACC: 0x%02X", m_CPUStatus.registers[0]);
                 ImGui::Text("X: 0x%02X", m_CPUStatus.registers[1]);
                 ImGui::Text("Y: 0x%02X", m_CPUStatus.registers[2]);
@@ -400,6 +401,14 @@ int GUI::mainLoop()
                                     m_pheripherials[0]->m_regNames[i].c_str(),
                                     m_pheripherials[0]->regs[i]);
                     }
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Symbols"))
+            {
+                for (int i = 0; i < m_symbolData.size(); i++)
+                {
+                    ImGui::Text("%s: 0x%04X", m_symbolData[i].symbol.c_str(), m_symbolData[i].address);
                 }
             }
         }
@@ -450,33 +459,37 @@ int GUI::mainLoop()
             {
                 editor.SetText(noOpenedFileText);
             }
-            for (size_t i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
+            for (unsigned long long i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
             {
-                if (ImGui::Button(sourceFileNames[i].c_str()))
+                bool currentBreakpoint = false;
+                if(i == currentPosition.fileID)
                 {
+                    currentBreakpoint = true;
+                }
+                if (ImGui::Button(sourceFileNames[i].c_str()) || (currentBreakpoint && currentPosition.address != lastPosition))
+                {
+                    lastPosition = currentPosition.address;
                     if (openedFileName != sourceFileNames[i])
                     {
                         openedFileName = sourceFileNames[i];
                         std::ifstream file(projectPath + openedFileName);
                         if (file.is_open())
                         {
-                            std::streampos begin, end;
-                            begin = file.tellg();
-                            file.seekg(0, std::ios::end);
-                            end = file.tellg();
-                            file.seekg(0);
-                            uint32_t len = end - begin;
-                            char *text = new char[len];
-                            file.read((char *)text, len);
+                            std::stringstream buffer;
+                            buffer << file.rdbuf();
+                            editor.SetText(buffer.str());
                             file.close();
-
-                            editor.SetText(text);
-                            delete[] text;
                         }
                         else
                         {
                             fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
                         }
+                    }
+                    if(currentBreakpoint)
+                    {
+                        TextEditor::Breakpoints brps;
+                        brps.insert(currentPosition.line);
+                        editor.SetBreakpoints(brps);
                     }
                 }
                 ImGui::SameLine();

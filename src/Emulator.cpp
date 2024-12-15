@@ -8,7 +8,7 @@ void cycle(void)
 }
 
 Emulator::Emulator()
-    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_gui(cpu.getStatus(), m_clock, cpu)
+    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(cpu.getStatus(), m_clock, cpu, m_debuggerData.SymbolData)
 {
     m_clock.setHZ(m_fq.HZ);
 }
@@ -36,6 +36,10 @@ int Emulator::main()
     while (isRunning())
     {
         m_gui.mainLoop();
+        if(!m_clock.getStatus())
+        {
+            m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr - 1);
+        }
         if (m_gui.NewProjectOpened)
         {
             m_gui.NewProjectOpened = false;

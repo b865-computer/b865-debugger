@@ -9,11 +9,12 @@
 #include <GLFW/glfw3.h>
 #include "CPU.h"
 #include "Clock.h"
+#include "Debugger.h"
 
 class GUI
 {
 public:
-    GUI(const CPU_Status &status, Clock &clock, CPU &cpu);
+    GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym>& symbolData);
     ~GUI();
     int init();
     void terminate();
@@ -23,7 +24,7 @@ public:
 
 private:
     void renderMenu();
-    bool LoadTextureFromMemory(const void *data, size_t data_size, GLuint *out_texture, int *out_width, int *out_height);
+    bool LoadTextureFromMemory(const void *data, unsigned long long data_size, GLuint *out_texture, int *out_width, int *out_height);
     bool LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *out_width, int *out_height);
 
 public:
@@ -31,6 +32,10 @@ public:
     std::string projectFileName;
     std::string projectPath;
     std::vector<std::string> sourceFileNames;
+    std::vector<breakpoint> breakpoints;
+    breakpoint currentPosition;
+    uint16_t lastPosition;
+    std::vector<debugSym>& m_symbolData;
 
 private:
     GLFWwindow *window;

@@ -2,6 +2,7 @@
 #include "SignalTables.h"
 #include <iostream>
 #include <fstream>
+#include "intelhex.h"
 
 std::vector<std::string> IO_regNames =
     {
@@ -47,30 +48,59 @@ int CPU::loadProgram(uint8_t *newprogram, uint32_t len)
 }
 int CPU::loadProgramFromFile(std::string filename)
 {
+    uint32_t len = 0x8000;
     std::ifstream file(filename, std::ios::binary | std::ios::in);
     if (!file.is_open())
     {
         fprintf(stderr, "Error: unable to open file %s\n", filename.c_str());
         return 1;
     }
-    std::streampos begin, end;
-    begin = file.tellg();
-    file.seekg(0, std::ios::end);
-    end = file.tellg();
-    file.seekg(0);
-    uint32_t len = end - begin;
-    if (len > 0x8000)
-    {
-        fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
-        return 1;
-    }
     uint8_t *program = new uint8_t[len];
-    file.read((char *)program, len);
-    file.close();
+    if (filename.find_last_of('.') != std::string::npos)
+    {
+        if (filename.substr(filename.find_last_of('.') + 1) == "hex")
+        {
+            intelhex::hex_data data;
+            data.read(file);
+            for(auto i = data.begin(); i != data.end(); i++)
+            {
+                if(i->first + i->second.size() > (len * 2))
+                {
+                    fprintf(stderr, "Error: file %s is too large\n", filename.c_str());
+                    break;
+                }
+                for(int j = 0; j < i->second.size(); j++)
+                {
+                    if(i->first + j < len)
+                    {
+                        fprintf(stderr, "Error: regions under adress 0x8000 don't get impoted.\n");
+                        break;
+                    }
+                    program[i->first + j - len] = i->second[j];
+                }
+            }
+        }
+        else
+        {
+            std::streampos begin, end;
+            begin = file.tellg();
+            file.seekg(0, std::ios::end);
+            end = file.tellg();
+            file.seekg(0);
+            uint32_t len = end - begin;
+            if (len > 0x8000)
+            {
+                fprintf(stderr, "Error: file size exceeds 0x8000 bytes\n");
+                return 1;
+            }
+            file.read((char *)program, len);
+        }
+    }
 
     loadProgram(program, len);
 
     delete[] program;
+    file.close();
     return 0;
 }
 void CPU::startExec()

@@ -6,10 +6,11 @@
 
 struct debugSym
 {
-    uint16_t address;
-    size_t line;
-    size_t fileID;
-    std::string file;
+    uint16_t address = 0;
+    unsigned long long line = 0;
+    unsigned long long fileID = 0;
+    std::string symbol; // can hold filename (only holds symbol name if line is equal to noLine)
+    const static unsigned long long noLine = 0xFFFFFFFFFFFFFFFF;
 };
 
 typedef debugSym breakpoint;
@@ -20,10 +21,13 @@ public:
     int init(std::string configFileName);
     std::vector<std::string> getFileNames();
     int getBreakpointData(std::vector<breakpoint> &);
+    breakpoint getBreakpoint(uint16_t address);
+    
+public:
+    std::vector<debugSym> SymbolData;
 
 private:
-    std::vector<breakpoint> breakpoints;
-    std::vector<debugSym> debuggerSymbols;
+    std::vector<debugSym> AdrData;
     std::vector<std::string> filenames;
 };
 
