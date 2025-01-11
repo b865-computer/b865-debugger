@@ -32,7 +32,7 @@ int Emulator::load(std::string filename, std::string path)
     {
         path = m_gui.projectPath = getPath(filename);
     }
-    if(isExtEqual(filename, "json"))
+    if(isExtEqual(filename, "b865"))
     {
         m_gui.projectFileName = filename;
         m_gui.sourceFileNames.clear();

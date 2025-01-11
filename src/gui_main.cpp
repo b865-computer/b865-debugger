@@ -519,7 +519,7 @@ int GUI::mainLoop()
             std::string filters;
             if (fileOpenInputType == projectFile)
             {
-                filters = ".json";
+                filters = ".b865";
             }
             else
             {
