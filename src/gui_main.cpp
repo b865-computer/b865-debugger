@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "gui.h"
 #include "TextEditor.h"
+#include "FilePath.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -32,10 +33,13 @@ FileInputType fileOpenInputType = projectFile;
 
 int toolBarImage_width = 0;
 int toolBarImage_height = 0;
+int errorImage_width;
+int errorImage_height;
 GLuint resetImage_id = 0;
 GLuint stopImage_id = 0;
 GLuint startImage_id = 0;
 GLuint tickImage_id = 0;
+GLuint errorImage_id = 0;
 
 void error_callback(int error, const char *description)
 {
@@ -158,6 +162,7 @@ int GUI::init()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.IniFilename = NULL;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -187,16 +192,19 @@ int GUI::init()
     toolBarImage_width = 0;
     toolBarImage_height = 0;
     resetImage_id = 0;
-    bool ret = LoadTextureFromFile("./share/reset.png", &resetImage_id, &toolBarImage_width, &toolBarImage_height);
+    bool ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/reset.png").c_str(), &resetImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     stopImage_id = 0;
-    ret = LoadTextureFromFile("./share/stop.png", &stopImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/stop.png").c_str(), &stopImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     startImage_id = 0;
-    ret = LoadTextureFromFile("./share/start.png", &startImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/start.png").c_str(), &startImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     tickImage_id = 0;
-    ret = LoadTextureFromFile("./share/tick.png", &tickImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
+    IM_ASSERT(ret);
+    errorImage_id = 0;
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
@@ -323,9 +331,9 @@ int GUI::mainLoop()
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
+        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0 || glfwGetWindowAttrib(window, GLFW_VISIBLE) != GLFW_TRUE)
         {
-            ImGui_ImplGlfw_Sleep(10);
+            ImGui_ImplGlfw_Sleep(100);
             return 0;
         }
         int display_w, display_h;
@@ -455,7 +463,7 @@ int GUI::mainLoop()
         {
             ImGui::SetWindowPos(ImVec2(display_w > 200 ? 200 : display_w, 20));
             ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 30));
-            if (sourceFileNames.size() == 1)
+            if (sourceFileNames.size() <= 1)
             {
                 editor.SetText(noOpenedFileText);
             }
@@ -472,7 +480,7 @@ int GUI::mainLoop()
                     if (openedFileName != sourceFileNames[i])
                     {
                         openedFileName = sourceFileNames[i];
-                        std::ifstream file(projectPath + openedFileName);
+                        std::ifstream file(projectPath + '/' + openedFileName);
                         if (file.is_open())
                         {
                             std::stringstream buffer;
@@ -536,7 +544,7 @@ int GUI::mainLoop()
                             char c = filePathName.at(i);
                             if (c == '/' || c == '\\')
                             {
-                                projectPath = filePathName.substr(0, i + 1);
+                                projectPath = filePathName.substr(0, i);
                                 break;
                             }
                         }
@@ -567,7 +575,7 @@ int GUI::mainLoop()
 
         if (customHzInput)
         {
-            ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+            ImGuiWindowFlags flags = ImGuiWindowFlags_NoSavedSettings;
             ImGui::SetWindowPos(ImVec2(265, 165));
             ImGui::SetWindowSize(ImVec2(195, 80));
             ImGui::Begin("Frequency:", &customHzInput, flags); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -587,6 +595,26 @@ int GUI::mainLoop()
             m_clock.setStatus(running);
         }
 
+        if (error_display)
+        {
+            ImGui::OpenPopup("Error");
+            error_display = false;
+        }
+        if(ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Image(errorImage_id, ImVec2(errorImage_width, errorImage_height));
+            ImGui::SameLine();
+            ImGui::BeginChild("##text&button", ImVec2(0, 0), ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY);
+            ImGui::Text(error_str.c_str());
+            if (ImGui::Button("Ok"))
+            {
+                error_display = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndChild();
+            ImGui::EndPopup();
+        }
+
         ImGui::PopStyleVar();
 
         ImGui::Render();
@@ -600,6 +628,30 @@ int GUI::mainLoop()
     {
         end = true;
     }
-    ImGui_ImplGlfw_Sleep(1);
+    ImGui_ImplGlfw_Sleep(10);
     return 0;
+}
+
+void GUI::displayError(const char *fmt, ...)
+{
+    error_display = true;
+    va_list args;
+    va_start(args, fmt);  // Initialize the argument list
+
+    // Determine the required buffer size
+    int size = vsnprintf(nullptr, 0, fmt, args) + 1; // +1 for null terminator
+    va_end(args);
+
+    // Allocate a buffer of the required size
+    std::vector<char> buffer(size);
+
+    // Format the string into the buffer
+    va_start(args, fmt);
+    vsnprintf(buffer.data(), size, fmt, args);
+    va_end(args);
+
+    buffer[size - 1] = '\0';
+
+    // Store the formatted string in error_str
+    error_str = std::string(buffer.data());
 }

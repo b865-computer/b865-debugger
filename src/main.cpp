@@ -1,11 +1,14 @@
 #include <iostream>
 #include <cstdio>
 #include "Emulator.h"
+#include "FilePath.h"
 
 Emulator emulator;
 
 int main(int argc, char *argv[])
 {
+    initExeBasePath();
+    setCwdArgv0(argv[0]);
     if(emulator.init())
     {
         return 1;

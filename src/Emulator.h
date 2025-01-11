@@ -15,7 +15,7 @@ class Emulator
 public:
     Emulator();
     int init();
-    int load(std::string filename);
+    int load(std::string filename, std::string path = "");
     int load(std::vector<uint8_t> &programData);
     int main();
     std::chrono::nanoseconds getRunTime_ns();
