@@ -1,7 +1,7 @@
 #include "Clock.h"
 
 Clock::Clock(void (*_cycle_func)(void))
-    : m_fq(1), m_cycle_func(_cycle_func)
+    : m_fq(1), m_targetFq(1), m_cycle_func(_cycle_func)
 {
 }
 
@@ -51,11 +51,12 @@ void Clock::singleCycle()
 void Clock::setHZ(uint64_t _HZ)
 {
     m_fq.set(_HZ);
+    m_targetFq.set(_HZ);
 }
 
 uint64_t Clock::getHZ()
 {
-    return m_fq.HZ;
+    return m_targetFq.HZ;
 }
 
 /**
@@ -110,6 +111,14 @@ void Clock::clockThreadFunc()
             m_tick = false;
             m_cycle_func();
             counter++;
+            if(((double)getCycles() / ((double)(m_now - m_start).count() / 1e9)) > m_targetFq.HZ)
+            {
+                m_fq.set(m_fq.HZ - 1);
+            }
+            if(((double)getCycles() / ((double)(m_now - m_start).count() / 1e9)) < m_targetFq.HZ)
+            {
+                m_fq.set(m_fq.HZ + 1);
+            }
         }
         if (sleep)
         {

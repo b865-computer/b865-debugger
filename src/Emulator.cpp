@@ -38,14 +38,19 @@ int Emulator::main()
         m_gui.mainLoop();
         if(!m_clock.getStatus())
         {
-            m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr - 1);
+            m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr);
         }
         if (m_gui.NewProjectOpened)
         {
-            m_gui.NewProjectOpened = false;
-            m_debuggerData.init(m_gui.projectFileName);
-            m_gui.sourceFileNames = m_debuggerData.getFileNames();
+            m_gui.sourceFileNames.clear();
             m_clock.setStatus(false);
+            m_gui.NewProjectOpened = false;
+            if(m_debuggerData.init(m_gui.projectFileName))
+            {
+                m_gui.displayError("Failed to Open project:\n%s", m_gui.projectFileName.c_str());
+                continue;
+            }
+            m_gui.sourceFileNames = m_debuggerData.getFileNames();
             m_cpu.loadProgramFromFile(m_gui.projectPath + m_gui.sourceFileNames[0]);
             m_cpu.startExec();
         }

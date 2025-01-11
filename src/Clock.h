@@ -61,6 +61,7 @@ private:
     bool m_newStatus = false;
     bool end;
     FQ m_fq;
+    FQ m_targetFq;
     void (*m_cycle_func)(void);
     std::chrono::_V2::system_clock::time_point m_start;
     std::chrono::_V2::system_clock::time_point m_now;

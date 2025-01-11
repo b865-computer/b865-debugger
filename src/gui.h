@@ -10,6 +10,7 @@
 #include "CPU.h"
 #include "Clock.h"
 #include "Debugger.h"
+#include <any>
 
 class GUI
 {
@@ -20,7 +21,7 @@ public:
     void terminate();
     bool windowClosed();
     int mainLoop();
-    // void AddPheriphList(Pheriph** pheripherials, int count);
+    void displayError(const char* fmt, ...);
 
 private:
     void renderMenu();
@@ -36,16 +37,18 @@ public:
     breakpoint currentPosition;
     uint16_t lastPosition;
     std::vector<debugSym>& m_symbolData;
+    uint64_t m_frequencyHZ = 1000000;
 
 private:
     GLFWwindow *window;
     const CPU_Status &m_CPUStatus;
     CPU &m_cpu;
     Clock &m_clock;
-    uint64_t m_frequencyHZ = 1000000;
     Pheriph **m_pheripherials = nullptr;
     int m_pheriphCount = 0;
     bool end = false;
+    std::string error_str;
+    bool error_display;
 };
 
 #endif
