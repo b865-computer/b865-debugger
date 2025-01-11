@@ -4,7 +4,7 @@
 
 /// @brief initializes the DebuggerData class based on the given json file
 /// @param configFileName the configuration .json file
-/// @return
+/// @return 0 if the initialization was successful, 1 otherwise
 int DebuggerData::init(std::string configFileName)
 {
     std::ifstream configFile(configFileName, std::ios::in);

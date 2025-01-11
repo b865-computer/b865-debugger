@@ -7,7 +7,8 @@ Emulator emulator;
 
 int main(int argc, char *argv[])
 {
-    setExeBasePath(argv[0]);
+    initExeBasePath();
+    setCwdArgv0(argv[0]);
     if(emulator.init())
     {
         return 1;

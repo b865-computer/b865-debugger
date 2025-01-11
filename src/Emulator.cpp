@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "FilePath.h"
 
 CPU cpu;
 
@@ -20,9 +21,37 @@ int Emulator::init()
     return m_gui.init();
 }
 
-int Emulator::load(std::string filename)
+int Emulator::load(std::string filename, std::string path)
 {
-    return m_cpu.loadProgramFromFile(filename);
+    if(path.size() != 0)
+    {
+        filename = path + "/" + filename;
+        m_gui.projectPath = path;
+    }
+    else
+    {
+        path = m_gui.projectPath = getPath(filename);
+    }
+    if(isExtEqual(filename, "json"))
+    {
+        m_gui.projectFileName = filename;
+        m_gui.sourceFileNames.clear();
+        m_clock.setStatus(false);
+        m_gui.NewProjectOpened = false;
+        if(m_debuggerData.init(filename))
+        {
+            m_gui.displayError("Failed to Open project:\n%s", m_gui.projectFileName.c_str());
+            return 1;
+        }
+        m_gui.sourceFileNames = m_debuggerData.getFileNames();
+        filename = m_gui.projectPath + '/' + m_gui.sourceFileNames[0];
+    }
+    if(m_cpu.loadProgramFromFile(filename))
+    {
+        m_gui.displayError("Failed to load program from file:\n%s", filename.c_str());
+        return 1;
+    }
+    return 0;
 }
 
 int Emulator::load(std::vector<uint8_t> &programData)
@@ -42,16 +71,10 @@ int Emulator::main()
         }
         if (m_gui.NewProjectOpened)
         {
-            m_gui.sourceFileNames.clear();
-            m_clock.setStatus(false);
-            m_gui.NewProjectOpened = false;
-            if(m_debuggerData.init(m_gui.projectFileName))
+            if(load(m_gui.projectFileName))
             {
-                m_gui.displayError("Failed to Open project:\n%s", m_gui.projectFileName.c_str());
                 continue;
             }
-            m_gui.sourceFileNames = m_debuggerData.getFileNames();
-            m_cpu.loadProgramFromFile(m_gui.projectPath + m_gui.sourceFileNames[0]);
             m_cpu.startExec();
         }
     }

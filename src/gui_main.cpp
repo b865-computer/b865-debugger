@@ -480,7 +480,7 @@ int GUI::mainLoop()
                     if (openedFileName != sourceFileNames[i])
                     {
                         openedFileName = sourceFileNames[i];
-                        std::ifstream file(projectPath + openedFileName);
+                        std::ifstream file(projectPath + '/' + openedFileName);
                         if (file.is_open())
                         {
                             std::stringstream buffer;
@@ -544,7 +544,7 @@ int GUI::mainLoop()
                             char c = filePathName.at(i);
                             if (c == '/' || c == '\\')
                             {
-                                projectPath = filePathName.substr(0, i + 1);
+                                projectPath = filePathName.substr(0, i);
                                 break;
                             }
                         }
