@@ -16,6 +16,8 @@
 
 TextEditor editor;
 
+TextEditor::LanguageDefinition AssemblyLangDef();
+
 const char *noOpenedFileText = "No opened souce files.";
 bool customHzInput = false;
 bool isRunning = false;
@@ -27,7 +29,7 @@ std::string openedFileName = "";
 enum FileInputType
 {
     programFile = 0,
-    projectFile = 0,
+    projectFile,
 };
 FileInputType fileOpenInputType = projectFile;
 
@@ -208,6 +210,7 @@ int GUI::init()
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
+    editor.SetLanguageDefinition(AssemblyLangDef());
     editor.SetReadOnly(false);
     editor.SetTabSize(4);
     editor.SetImGuiChildIgnored(true);
