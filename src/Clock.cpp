@@ -10,6 +10,21 @@
 #include <sched.h>
 #include <unistd.h>
 #endif
+#include <math.h>
+
+template<typename tVal>
+tVal map_value(std::pair<tVal,tVal> a, std::pair<tVal, tVal> b, tVal inVal)
+{
+  tVal inValNorm = inVal - a.first;
+  tVal aUpperNorm = a.second - a.first;
+  tVal normPosition = inValNorm / aUpperNorm;
+
+  tVal bUpperNorm = b.second - b.first;
+  tVal bValNorm = normPosition * bUpperNorm;
+  tVal outVal = b.first + bValNorm;
+
+  return outVal;
+}
 
 void pinThreadToCore(std::thread::native_handle_type handle, int core_id)
 {
@@ -134,6 +149,8 @@ void Clock::singleCycle()
 
 void Clock::setHZ(uint64_t _HZ)
 {
+    bool running = m_isRunning;
+    setStatus(false);
     double ratio = m_fq.HZ / m_targetFq.HZ;
     if(ratio < 1.0)
     {
@@ -153,9 +170,12 @@ void Clock::setHZ(uint64_t _HZ)
         upper_threshold = m_targetFq.HZ + 50;
         lower_threshold = m_targetFq.HZ - 50;
     }
-    double frequency_ratio = m_targetFq.HZ / max_frequency;
-    reset_interval = std::chrono::duration_cast<std::chrono::seconds>(min_reset_interval + (max_reset_interval - min_reset_interval) * (1.0 - frequency_ratio));
-    fprintf(stdout, "frequency: %d, reset_interval: %ds\n", m_targetFq.HZ, std::chrono::duration_cast<std::chrono::seconds>(reset_interval).count());
+
+    std::pair<double,double> freq(log10(max_frequency), 1.0f);
+    std::pair<double,double> interval(min_reset_interval.count(), max_reset_interval.count());
+    reset_interval = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds((uint64_t)map_value(freq, interval, log10((double)m_targetFq.HZ))));
+    
+    setStatus(running);
 }
 
 uint64_t Clock::getHZ()
@@ -201,8 +221,16 @@ void Clock::clockThreadFunc()
     auto last_time = m_start;
     auto cycle_duration = std::chrono::nanoseconds(m_fq.ns);
 
-    upper_threshold = m_targetFq.HZ + 50;
-    lower_threshold = m_targetFq.HZ - 50;
+    if(m_targetFq.HZ < 1000)
+    {
+        upper_threshold = m_targetFq.HZ + 1;
+        lower_threshold = m_targetFq.HZ - 1;
+    }
+    else
+    {
+        upper_threshold = m_targetFq.HZ + 50;
+        lower_threshold = m_targetFq.HZ - 50;
+    }
 
     reset_interval = std::chrono::nanoseconds((unsigned long long)1e9);
     
@@ -214,22 +242,27 @@ void Clock::clockThreadFunc()
             m_start = std::chrono::high_resolution_clock::now();
             last_time = m_start;
             counter = 0;
+            cycle_duration = std::chrono::nanoseconds(m_fq.ns);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            continue;
+            if (!m_tick)
+            {
+                continue;
+            }
         }
 
         m_now = std::chrono::high_resolution_clock::now();
         m_elapsed = m_now - last_time;
 
-        if (m_elapsed >= cycle_duration)
+        if (m_elapsed >= cycle_duration || m_tick)
         {
+            m_tick = false;
             last_time = m_now;
             m_cycle_func();
             counter++;
 
             if ((m_now - m_start) >= reset_interval) {
-                counter = 0;  // Reset the cycle counter
+                counter = 1;  // Reset the cycle counter
                 m_start = m_now;  // Reset start time
                 continue;
             }

@@ -638,6 +638,7 @@ int GUI::mainLoop()
             m_clock.setStatus(false);
             m_clock.setHZ(m_frequencyHZ);
             m_clock.setStatus(running);
+            isRunning = false;
         }
 
         ImGui::PopStyleVar(); // Popups and the console need border.

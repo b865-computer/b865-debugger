@@ -61,8 +61,8 @@ private:
     double upper_threshold;
     double lower_threshold;
     std::chrono::nanoseconds reset_interval;
-    const double max_frequency = 50e6;  // 10 MHz
-    const std::chrono::seconds max_reset_interval = std::chrono::seconds(20);  // Maximum reset interval (10 seconds for 1 Hz)
+    const double max_frequency = 10e6;  // 10 MHz
+    const std::chrono::seconds max_reset_interval = std::chrono::seconds(10);  // Maximum reset interval (10 seconds for 1 Hz)
     const std::chrono::seconds min_reset_interval = std::chrono::seconds(1);
 };
 
