@@ -276,6 +276,14 @@ void GUI::renderMenu()
                 {
                     customHzInput = true;
                 }
+                if (ImGui::MenuItem("10 MHz", nullptr, (m_frequencyHZ == 10000000)))
+                {
+                    m_frequencyHZ = 10000000;
+                }
+                if (ImGui::MenuItem("5 MHz", nullptr, (m_frequencyHZ == 5000000)))
+                {
+                    m_frequencyHZ = 5000000;
+                }
                 if (ImGui::MenuItem("2 MHz", nullptr, (m_frequencyHZ == 2000000)))
                 {
                     m_frequencyHZ = 2000000;
@@ -401,6 +409,7 @@ int GUI::mainLoop()
                 ImGui::Text("IR0: 0x%02X", m_CPUStatus.IR0);
                 ImGui::Text("IR1: 0x%02X", m_CPUStatus.IR1);
                 ImGui::Text("AR: 0x%02X", m_CPUStatus.AR);
+                ImGui::Separator();
                 ImGui::Text("ACC: 0x%02X", m_CPUStatus.registers[0]);
                 ImGui::Text("X: 0x%02X", m_CPUStatus.registers[1]);
                 ImGui::Text("Y: 0x%02X", m_CPUStatus.registers[2]);
@@ -686,6 +695,7 @@ int GUI::mainLoop()
             ImGui::SetWindowPos(ImVec2(200, display_h > 300 ? display_h - 300 : 0));
             ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 300));
             ImGui::Text("Terminal");
+            ImGui::Separator();
             ImGui::BeginChild("#Text");
             for(const auto& line : *ConsoleText)
             {

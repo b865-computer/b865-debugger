@@ -1,4 +1,87 @@
 #include "Clock.h"
+#include <thread>
+#include <chrono>
+#include <iostream>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#include <sched.h>
+#include <unistd.h>
+#endif
+
+void pinThreadToCore(std::thread::native_handle_type handle, int core_id)
+{
+#ifdef _WIN32
+
+    DWORD_PTR mask = (1ULL << core_id);
+    if (!SetThreadAffinityMask((HANDLE)handle, mask))
+    {
+        fprintf(stderr, "Failed to set thread affinity. Error: %lu\n", GetLastError());
+    }
+#else
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+
+    if (pthread_setaffinity_np(handle, sizeof(cpu_set_t), &cpuset) != 0)
+    {
+        fprintf(stderr, "Failed to set thread affinity.\n");
+    }
+#endif
+}
+
+void setThreadPriority(std::thread::native_handle_type handle, bool high_priority)
+{
+#ifdef _WIN32
+    int priority = high_priority ? THREAD_PRIORITY_HIGHEST : THREAD_PRIORITY_NORMAL;
+    if (!SetThreadPriority((HANDLE)handle, priority))
+    {
+        fprintf(stderr, "Failed to set thread priority. Error: %lu\n", GetLastError());
+    }
+#else
+    sched_param sch_params;
+    sch_params.sched_priority = high_priority ? sched_get_priority_max(SCHED_FIFO) : 0;
+
+    if (pthread_setschedparam(handle, high_priority ? SCHED_FIFO : SCHED_OTHER, &sch_params) != 0)
+    {
+        fprintf(stderr, "Failed to set thread priority.\n");
+    }
+#endif
+}
+
+
+
+// Dummy m_cycle_func for demonstration purposes
+void m_cycle_func()
+{
+    // Replace with actual functionality
+}
+
+// Constructor with default HZ
+FQ::FQ(uint64_t _HZ)
+{
+    set(_HZ);
+}
+
+// Copy constructor
+FQ::FQ(const FQ& other)
+{
+    set(other.HZ);
+}
+
+// Method to set frequency
+void FQ::set(uint64_t _HZ)
+{
+    if (_HZ == 0)
+    {
+        _HZ = 1000000; // Default to 1 MHz
+    }
+    HZ = _HZ;
+    ns = 1000000000 / HZ;
+    sleep = (ns < sleep_threshold) ? 0 : default_sleep;
+}
 
 Clock::Clock(void (*_cycle_func)(void))
     : m_fq(1), m_targetFq(1), m_cycle_func(_cycle_func)
@@ -26,6 +109,7 @@ void Clock::setStatus(bool running)
     if (m_isRunning != running && running)
     {
         m_start = std::chrono::high_resolution_clock::now();
+        m_fq.set(m_targetFq.HZ);
     }
     m_isRunning = running;
     if (!m_isRunning)
@@ -50,8 +134,28 @@ void Clock::singleCycle()
 
 void Clock::setHZ(uint64_t _HZ)
 {
-    m_fq.set(_HZ);
+    double ratio = m_fq.HZ / m_targetFq.HZ;
+    if(ratio < 1.0)
+    {
+        ratio = 1.0;
+    }
+    m_fq.set(_HZ * ratio);
     m_targetFq.set(_HZ);
+
+    // thresholds for adjustments
+    if(m_targetFq.HZ < 1000)
+    {
+        upper_threshold = m_targetFq.HZ + 1;
+        lower_threshold = m_targetFq.HZ - 1;
+    }
+    else
+    {
+        upper_threshold = m_targetFq.HZ + 50;
+        lower_threshold = m_targetFq.HZ - 50;
+    }
+    double frequency_ratio = m_targetFq.HZ / max_frequency;
+    reset_interval = std::chrono::duration_cast<std::chrono::seconds>(min_reset_interval + (max_reset_interval - min_reset_interval) * (1.0 - frequency_ratio));
+    fprintf(stdout, "frequency: %d, reset_interval: %ds\n", m_targetFq.HZ, std::chrono::duration_cast<std::chrono::seconds>(reset_interval).count());
 }
 
 uint64_t Clock::getHZ()
@@ -81,45 +185,70 @@ unsigned long long Clock::getCycles()
 
 void Clock::clockThreadFunc()
 {
+    // Pin the thread to a core and set its priority
+#ifdef _WIN32
+    pinThreadToCore((std::thread::native_handle_type)GetCurrentThread(), 0); // Pin to core 0
+    setThreadPriority((std::thread::native_handle_type)GetCurrentThread(), true); // Set high priority
+#else
+    pinThreadToCore(clockThread.native_handle(), 0); // Pin to core 0
+    setThreadPriority(clockThread.native_handle(), true); // Set high priority
+#endif
+
     bool sleep = (m_fq.sleep > 25);
     counter = 0;
 
     m_start = std::chrono::high_resolution_clock::now();
-    m_now = m_start;
-    auto last_start = m_start;
-    m_elapsed = std::chrono::high_resolution_clock::now() - m_start;
+    auto last_time = m_start;
+    auto cycle_duration = std::chrono::nanoseconds(m_fq.ns);
 
+    upper_threshold = m_targetFq.HZ + 50;
+    lower_threshold = m_targetFq.HZ - 50;
+
+    reset_interval = std::chrono::nanoseconds((unsigned long long)1e9);
+    
     while (!end)
     {
         m_newStatus = m_isRunning;
         if (!m_isRunning)
         {
             m_start = std::chrono::high_resolution_clock::now();
-            last_start = m_start;
+            last_time = m_start;
             counter = 0;
+
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            if (!m_tick)
-            {
-                continue;
-            }
+            continue;
         }
+
         m_now = std::chrono::high_resolution_clock::now();
-        m_elapsed = m_now - last_start;
-        if (m_elapsed.count() > m_fq.ns || m_tick)
+        m_elapsed = m_now - last_time;
+
+        if (m_elapsed >= cycle_duration)
         {
-            last_start = m_now;
-            m_tick = false;
+            last_time = m_now;
             m_cycle_func();
             counter++;
-            if(((double)getCycles() / ((double)(m_now - m_start).count() / 1e9)) > m_targetFq.HZ)
-            {
-                m_fq.set(m_fq.HZ - 1);
+
+            if ((m_now - m_start) >= reset_interval) {
+                counter = 0;  // Reset the cycle counter
+                m_start = m_now;  // Reset start time
+                continue;
             }
-            if(((double)getCycles() / ((double)(m_now - m_start).count() / 1e9)) < m_targetFq.HZ)
+
+            // Adjust frequency if needed
+            double current_frequency = static_cast<double>(counter) / 
+                                    (std::chrono::duration<double>(m_now - m_start).count());
+
+            // Only make adjustments if we're outside the dead zone
+            if (current_frequency > upper_threshold)
             {
-                m_fq.set(m_fq.HZ + 1);
+                cycle_duration += std::chrono::nanoseconds((uint64_t)((current_frequency - upper_threshold) / 20));
+            }
+            else if (current_frequency < lower_threshold)
+            {
+                cycle_duration -= std::chrono::nanoseconds((uint64_t)((lower_threshold - current_frequency) / 20));
             }
         }
+
         if (sleep)
         {
             std::this_thread::sleep_for(std::chrono::nanoseconds(m_fq.sleep));
