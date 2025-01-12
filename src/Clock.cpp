@@ -97,7 +97,7 @@ void Clock::clockThreadFunc()
             m_start = std::chrono::high_resolution_clock::now();
             last_start = m_start;
             counter = 0;
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             if (!m_tick)
             {
                 continue;
