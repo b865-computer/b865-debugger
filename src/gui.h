@@ -40,6 +40,7 @@ public:
     uint64_t m_frequencyHZ = 1000000;
     bool buildRunning = false;
     std::vector<std::string>* ConsoleText;
+    bool ins_level;
 
 private:
     GLFWwindow *window;

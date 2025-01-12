@@ -342,6 +342,10 @@ void GUI::renderMenu()
                 }
                 ImGui::EndMenu();
             }
+            if (ImGui::MenuItem("Instruction-level", nullptr, &ins_level))
+            {
+                ins_level = !ins_level;
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View"))

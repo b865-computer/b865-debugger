@@ -170,6 +170,10 @@ void cycle(void)
 {
     cpu.cycle();
 }
+void cycle_ins_level(void)
+{
+    cpu.cycle_ins_level();
+}
 
 Emulator::Emulator()
     : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(cpu.getStatus(), m_clock, cpu, m_debuggerData.SymbolData)
@@ -229,6 +233,7 @@ int Emulator::main()
     M_PROCESS_OUT buildProcessOut;
     M_PROCESS buildProcess;
     bool buildProcessRunning = false;
+    bool ins_level = false;
     std::string buildCmd;
     start();
     while (isRunning())
@@ -237,6 +242,16 @@ int Emulator::main()
         if(!m_clock.getStatus())
         {
             m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr);
+        }
+        if(m_gui.ins_level && !ins_level)
+        {
+            ins_level = true;
+            m_clock.m_cycle_func = cycle_ins_level;
+        }
+        else if(!m_gui.ins_level && ins_level)
+        {
+            ins_level = false;
+            m_clock.m_cycle_func = cycle;
         }
         if (m_gui.NewProjectOpened)
         {

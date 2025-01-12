@@ -41,6 +41,7 @@ public:
     uint64_t getRunTimeCycles_ns();
     std::chrono::nanoseconds getRunTime_ns();
     uint64_t getCycles();
+    void (*m_cycle_func)(void);
 
 private:
     void clockThreadFunc();
@@ -54,7 +55,6 @@ private:
     std::atomic<bool> m_tick;
     FQ m_fq;
     FQ m_targetFq;
-    void (*m_cycle_func)(void);
     std::chrono::_V2::system_clock::time_point m_start;
     std::chrono::_V2::system_clock::time_point m_now;
     std::chrono::nanoseconds m_elapsed;

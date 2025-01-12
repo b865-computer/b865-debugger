@@ -115,6 +115,7 @@ public:
     CPU();
     void init();
     void cycle();
+    void cycle_ins_level();
     int loadProgram(uint8_t *newprogram, uint32_t len);
     int loadProgramFromFile(std::string filename);
     void startExec();
@@ -130,6 +131,7 @@ private:
     uint8_t calcALUOut();
 
 private:
+    int m_cycle = 0;
 };
 
 #endif // _CPU_H_

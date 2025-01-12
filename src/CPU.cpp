@@ -331,3 +331,23 @@ uint8_t CPU::calcALUOut()
     }
     return val;
 }
+
+void CPU::cycle_ins_level()
+{
+    if(m_cycle)
+    {
+        m_cycle--;
+    }
+    switch(IR0)
+    {
+    // TODO: Add more instructions
+    case 0: // reset
+        registers[X_IDX] = 0xFF;
+        PC.addr = mem.get(0xFFFE) << 8 | mem.get(0xFFFF);
+        IR0 = mem.get(PC.addr++);
+        m_cycle = 6;
+        break;
+    default:
+        break;
+    }
+}
