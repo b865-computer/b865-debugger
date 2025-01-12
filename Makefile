@@ -18,7 +18,7 @@ LIB_INTELHEX_OBJ = $(LIB_INTELHEX_SRC:.cc=.o)
 
 INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_IMGUIFILEDIALOG) -I$(LIB_IMGUICOLOTEXTEDIT) -I$(LIB_INTELHEX)/include -Ilib/stb_image
 
-CFLAGS = -g -O3 -fdiagnostics-color=always $(INCLUDEPATH)
+CFLAGS = -g -O3 -fdiagnostics-color=always -std=c++17 -pthread $(INCLUDEPATH)
 CFLIBFLAGS = $(CFLAGS)
 LDFLAGS = -lglfw3 -lopengl32 -ljsoncpp
 

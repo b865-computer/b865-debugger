@@ -16,6 +16,8 @@
 
 TextEditor editor;
 
+TextEditor::LanguageDefinition AssemblyLangDef();
+
 const char *noOpenedFileText = "No opened souce files.";
 bool customHzInput = false;
 bool isRunning = false;
@@ -23,11 +25,14 @@ uint64_t customFrequencyHZ = 1;
 bool fileOpenInput = false;
 bool showRealFrequency = false;
 std::string openedFileName = "";
+std::string Path = "";
+bool changedSource = false;
+bool console = false;
 
 enum FileInputType
 {
     programFile = 0,
-    projectFile = 0,
+    projectFile,
 };
 FileInputType fileOpenInputType = projectFile;
 
@@ -47,7 +52,7 @@ void error_callback(int error, const char *description)
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool GUI::LoadTextureFromMemory(const void *data, unsigned long long  data_size, GLuint *out_texture, int *out_width, int *out_height)
+bool GUI::LoadTextureFromMemory(const void *data, unsigned long long data_size, GLuint *out_texture, int *out_width, int *out_height)
 {
     // Load from file
     int image_width = 0;
@@ -84,7 +89,7 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
     if (f == NULL)
         return false;
     fseek(f, 0, SEEK_END);
-    unsigned long long  file_size = (unsigned long long )ftell(f);
+    unsigned long long file_size = (unsigned long long)ftell(f);
     if (file_size == -1)
         return false;
     fseek(f, 0, SEEK_SET);
@@ -103,9 +108,26 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         fileOpenInput = true;
         fileOpenInputType = projectFile;
     }
-    if (key == GLFW_KEY_S && control && action == GLFW_PRESS)
+    if (key == GLFW_KEY_T && control && action == GLFW_PRESS)
     {
         isRunning = !isRunning;
+    }
+    if (key == GLFW_KEY_S && control && action == GLFW_PRESS)
+    {
+        if (openedFileName.size())
+        {
+            std::ofstream file(Path + '/' + openedFileName);
+            if (file.is_open())
+            {
+                file << editor.GetText();
+                file.close();
+                changedSource = true;
+            }
+            else
+            {
+                fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+            }
+        }
     }
 }
 
@@ -208,6 +230,7 @@ int GUI::init()
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
+    editor.SetLanguageDefinition(AssemblyLangDef());
     editor.SetReadOnly(false);
     editor.SetTabSize(4);
     editor.SetImGuiChildIgnored(true);
@@ -239,6 +262,10 @@ void GUI::renderMenu()
         }
         if (ImGui::BeginMenu("Emulator"))
         {
+            if (ImGui::MenuItem("Build project", "Ctrl+B"))
+            {
+                building = true;
+            }
             if (ImGui::MenuItem("Start/Stop", "Ctrl+S", &isRunning))
             {
                 m_clock.setStatus(!m_clock.getStatus());
@@ -248,6 +275,14 @@ void GUI::renderMenu()
                 if (ImGui::MenuItem("Custom"))
                 {
                     customHzInput = true;
+                }
+                if (ImGui::MenuItem("10 MHz", nullptr, (m_frequencyHZ == 10000000)))
+                {
+                    m_frequencyHZ = 10000000;
+                }
+                if (ImGui::MenuItem("5 MHz", nullptr, (m_frequencyHZ == 5000000)))
+                {
+                    m_frequencyHZ = 5000000;
                 }
                 if (ImGui::MenuItem("2 MHz", nullptr, (m_frequencyHZ == 2000000)))
                 {
@@ -307,6 +342,10 @@ void GUI::renderMenu()
                 }
                 ImGui::EndMenu();
             }
+            if (ImGui::MenuItem("Instruction-level", nullptr, &ins_level))
+            {
+                ins_level = !ins_level;
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View"))
@@ -314,6 +353,10 @@ void GUI::renderMenu()
             if (ImGui::MenuItem("Show Frequency", nullptr, showRealFrequency))
             {
                 showRealFrequency = !showRealFrequency;
+            }
+            if (ImGui::MenuItem("Show Terminal", nullptr, console))
+            {
+                console = !console;
             }
             ImGui::EndMenu();
         }
@@ -331,7 +374,7 @@ int GUI::mainLoop()
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0 || glfwGetWindowAttrib(window, GLFW_VISIBLE) != GLFW_TRUE)
+        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != GLFW_FALSE || glfwGetWindowAttrib(window, GLFW_VISIBLE) != GLFW_TRUE)
         {
             ImGui_ImplGlfw_Sleep(100);
             return 0;
@@ -370,6 +413,7 @@ int GUI::mainLoop()
                 ImGui::Text("IR0: 0x%02X", m_CPUStatus.IR0);
                 ImGui::Text("IR1: 0x%02X", m_CPUStatus.IR1);
                 ImGui::Text("AR: 0x%02X", m_CPUStatus.AR);
+                ImGui::Separator();
                 ImGui::Text("ACC: 0x%02X", m_CPUStatus.registers[0]);
                 ImGui::Text("X: 0x%02X", m_CPUStatus.registers[1]);
                 ImGui::Text("Y: 0x%02X", m_CPUStatus.registers[2]);
@@ -470,7 +514,7 @@ int GUI::mainLoop()
             for (unsigned long long i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
             {
                 bool currentBreakpoint = false;
-                if(i == currentPosition.fileID)
+                if (i == currentPosition.fileID)
                 {
                     currentBreakpoint = true;
                 }
@@ -493,7 +537,7 @@ int GUI::mainLoop()
                             fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
                         }
                     }
-                    if(currentBreakpoint)
+                    if (currentBreakpoint)
                     {
                         TextEditor::Breakpoints brps;
                         brps.insert(currentPosition.line);
@@ -508,7 +552,7 @@ int GUI::mainLoop()
         ImGui::PopStyleVar(2);
 
         ImGui::SetNextWindowPos(ImVec2(200, 44));
-        ImGui::SetNextWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0));
+        ImGui::SetNextWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > (44 + (console ? 300 : 0)) ? display_h - (44 + (console ? 300 : 0)) : 0));
 
         if (fileOpenInput)
         {
@@ -530,7 +574,7 @@ int GUI::mainLoop()
             // display
             if (ImGuiFileDialog::Instance()->Display("0", flags,
                                                      ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0),
-                                                     ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > 44 ? display_h - 44 : 0)))
+                                                     ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > (44 + (console ? 300 : 0)) ? display_h - (44 + (console ? 300 : 0)) : 0)))
             {
                 if (ImGuiFileDialog::Instance()->IsOk())
                 {
@@ -545,6 +589,7 @@ int GUI::mainLoop()
                             if (c == '/' || c == '\\')
                             {
                                 projectPath = filePathName.substr(0, i);
+                                Path = projectPath;
                                 break;
                             }
                         }
@@ -572,6 +617,10 @@ int GUI::mainLoop()
         }
 
         m_clock.setStatus(isRunning);
+        if(isRunning && changedSource)
+        {
+            building = true;
+        }
 
         if (customHzInput)
         {
@@ -593,14 +642,17 @@ int GUI::mainLoop()
             m_clock.setStatus(false);
             m_clock.setHZ(m_frequencyHZ);
             m_clock.setStatus(running);
+            isRunning = false;
         }
+
+        ImGui::PopStyleVar(); // Popups and the console need border.
 
         if (error_display)
         {
             ImGui::OpenPopup("Error");
             error_display = false;
         }
-        if(ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Image(errorImage_id, ImVec2(errorImage_width, errorImage_height));
             ImGui::SameLine();
@@ -614,8 +666,52 @@ int GUI::mainLoop()
             ImGui::EndChild();
             ImGui::EndPopup();
         }
+        if (building)
+        {
+            if (projectPath == "")
+            {
+                displayError("Please open a project first.");
+                building = false;
+            }
+            else
+            {
+                buildRunning = true;
+                changedSource = false;
+                isRunning = false;
+                m_clock.setStatus(isRunning);
+                ImGui::OpenPopup("Building");
+                building = false;
+            }
+        }
+        if (ImGui::BeginPopupModal("Building", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Building project, please wait.");
+            if (!buildRunning)
+            {
+                building = false;
+                NewProjectOpened = true;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
 
-        ImGui::PopStyleVar();
+        if(console && ImGui::Begin("Console", nullptr, flags))
+        {
+            ImGui::SetWindowPos(ImVec2(200, display_h > 300 ? display_h - 300 : 0));
+            ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 300));
+            ImGui::Text("Terminal");
+            ImGui::Separator();
+            ImGui::BeginChild("#Text");
+            for(const auto& line : *ConsoleText)
+            {
+                ImGui::TextWrapped("%s", line.c_str());
+            }
+            ImGui::EndChild();
+        }
+        if(console)
+        {
+            ImGui::End();
+        }
 
         ImGui::Render();
         glViewport(0, 0, display_w, display_h);
@@ -636,7 +732,7 @@ void GUI::displayError(const char *fmt, ...)
 {
     error_display = true;
     va_list args;
-    va_start(args, fmt);  // Initialize the argument list
+    va_start(args, fmt); // Initialize the argument list
 
     // Determine the required buffer size
     int size = vsnprintf(nullptr, 0, fmt, args) + 1; // +1 for null terminator

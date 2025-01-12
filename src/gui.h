@@ -38,6 +38,9 @@ public:
     uint16_t lastPosition;
     std::vector<debugSym>& m_symbolData;
     uint64_t m_frequencyHZ = 1000000;
+    bool buildRunning = false;
+    std::vector<std::string>* ConsoleText;
+    bool ins_level;
 
 private:
     GLFWwindow *window;
@@ -49,6 +52,7 @@ private:
     bool end = false;
     std::string error_str;
     bool error_display;
+    bool building = false;
 };
 
 #endif
