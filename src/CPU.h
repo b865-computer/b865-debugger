@@ -52,7 +52,8 @@ union CPU_Signals
         uint32_t SPO_A : 1;
         uint32_t X_INC : 1;
         uint32_t MI : 1;
-        uint32_t res_3 : 2;
+        uint32_t FLAG_MASK : 1;
+        uint32_t res_3 : 1;
         uint32_t ROR : 1;
         uint32_t X_DEC : 1;
         uint32_t SP_INC : 1;
@@ -74,7 +75,7 @@ union CPU_Signals
         uint32_t res_1 : 1;
         uint32_t FI : 1;
         uint32_t CE : 1;
-        uint32_t res_0 : 1;
+        uint32_t IMC : 1;
         uint32_t RIO_SE : 1;
         uint32_t HLT : 1;
         uint32_t AM_SE : 1;
@@ -97,6 +98,7 @@ public:
     int InsCycle = 0;
     int AdrCycle = 0;
     uint8_t RI = 0, RO = 0, ALU_OP = 0;
+    int AddrMode;
     union
     {
         struct

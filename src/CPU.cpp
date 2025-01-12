@@ -131,33 +131,33 @@ void CPU::cycle()
     {
         return;
     }
+    AddrMode = AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4);
     if (AdrState)
     {
-        signals.val = AdrSignalTable[AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4)][AdrCycle++];
+        signals.val = AdrSignalTable[AddrMode][AdrCycle++];
     }
     else
     {
         signals.val = InsSignalTable[IR0 & 0x3F][InsCycle++];
+        if(signals.FLAG_MASK)
+        {
+            IR0 = ((IR0 & 0x1F) | ((IR0 >> 5) == flags.val ? 1 : 0));
+            signals.val = InsSignalTable[IR0 & 0x3F][InsCycle - 1];
+        }
     }
     executeSignals();
 }
 
 void CPU::executeSignals()
 {
-    if (signals.INS_END)
-    {
-        InsCycle = AdrCycle = 0;
-        AdrModeSelect = false;
-        started = true;
-        MAR = PC;
-        cycle();
-        return;
-    }
-
-    if (signals.ROM_SE)
+    if (signals.ROM_SE && (AddrMode != 6))
     {
         AdrCycle = 0;
         AdrState = AdrState ? false : true;
+    }
+    if(signals.IMC && (AddrMode == 6))
+    {
+        signals.CE = 1;
     }
 
     RI = signals.RIO_SE ? ((IR0 & 0xE0) >> 5) : (IR1 & 0x07);
@@ -239,6 +239,12 @@ void CPU::executeSignals()
         registers[REGISTERS_BANK::X_IDX]++;
     }
     MAR = ABus;
+    if (signals.INS_END)
+    {
+        InsCycle = AdrCycle = 0;
+        AdrModeSelect = false;
+        started = true;
+    }
 }
 
 uint8_t CPU::getRegOut(uint8_t regNum, uint8_t bankRegNum)
