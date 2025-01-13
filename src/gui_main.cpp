@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "gui.h"
 #include "TextEditor.h"
-#include "FilePath.h"
+#include "Utils.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
