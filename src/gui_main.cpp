@@ -535,6 +535,7 @@ int GUI::mainLoop()
                         else
                         {
                             fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+                            displayError("Unable to open file: %s", openedFileName.c_str());
                         }
                     }
                     if (currentBreakpoint)
