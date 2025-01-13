@@ -7,10 +7,10 @@
 struct debugSym
 {
     uint16_t address = 0;
-    unsigned long long line = 0;
-    unsigned long long fileID = 0;
+    uint64_t line = 0;
+    uint64_t fileID = 0;
     std::string symbol; // can hold filename (only holds symbol name if line is equal to noLine)
-    const static unsigned long long noLine = 0xFFFFFFFFFFFFFFFF;
+    const static uint64_t noLine = 0xFFFFFFFFFFFFFFFF;
 };
 
 typedef debugSym breakpoint;

@@ -66,14 +66,6 @@ void setThreadPriority(std::thread::native_handle_type handle, bool high_priorit
 #endif
 }
 
-
-
-// Dummy m_cycle_func for demonstration purposes
-void m_cycle_func()
-{
-    // Replace with actual functionality
-}
-
 // Constructor with default HZ
 FQ::FQ(uint64_t _HZ)
 {
@@ -106,7 +98,7 @@ Clock::Clock(void (*_cycle_func)(void))
 void Clock::init()
 {
     end = false;
-    clockThread = std::thread(clockThreadFunc, this);
+    clockThread = std::thread(&Clock::clockThreadFunc, this);
 }
 
 void Clock::terminate()
@@ -188,7 +180,7 @@ uint64_t Clock::getHZ()
  * the time is based on the cycles executed by the clock, not
  * the real elapsed time.
  */
-unsigned long long Clock::getRunTimeCycles_ns()
+uint64_t Clock::getRunTimeCycles_ns()
 {
     return counter * m_fq.ns;
 }
@@ -198,7 +190,7 @@ std::chrono::nanoseconds Clock::getRunTime_ns()
     return m_now - m_start;
 }
 
-unsigned long long Clock::getCycles()
+uint64_t Clock::getCycles()
 {
     return counter;
 }
@@ -232,7 +224,7 @@ void Clock::clockThreadFunc()
         lower_threshold = m_targetFq.HZ - 50;
     }
 
-    reset_interval = std::chrono::nanoseconds((unsigned long long)1e9);
+    reset_interval = std::chrono::nanoseconds((uint64_t)1e9);
     
     while (!end)
     {

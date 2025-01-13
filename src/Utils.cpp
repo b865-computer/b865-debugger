@@ -225,7 +225,7 @@ bool pollProgramOutput(M_PROCESS_OUT process, std::string& outPutLines)
     {
         outPutLines += buffer;
     }
-    int status = pclose(pipe)
+    int status = pclose(process);
     return (status == -1);
 #endif
     return false;

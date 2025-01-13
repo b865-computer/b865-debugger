@@ -1,5 +1,8 @@
 CXX = g++
 
+# executable extension (Windows: '.exe', Linux: '')
+EXE = .exe
+
 LIB_IMGUI = lib/imgui
 LIB_IMGUI_SRC = $(wildcard $(LIB_IMGUI)/imgui*.cpp)
 LIB_IMGUI_OBJ = $(LIB_IMGUI_SRC:.cpp=.o) $(LIB_IMGUI)/backends/imgui_impl_glfw.o $(LIB_IMGUI)/backends/imgui_impl_opengl3.o
@@ -20,6 +23,9 @@ INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_IMGUIFILEDIALOG) -I
 
 CFLAGS = -g -O3 -fdiagnostics-color=always -std=c++17 -pthread $(INCLUDEPATH)
 CFLIBFLAGS = $(CFLAGS)
+# Linux
+# LDFLAGS = -lglfw -lGL -ljsoncpp
+# Windows
 LDFLAGS = -lglfw3 -lopengl32 -ljsoncpp
 
 SRC = $(wildcard src/*.cpp)
@@ -31,13 +37,13 @@ LIBOBJ = $(LIB_IMGUICOLOTEXTEDIT_OBJ) $(LIB_IMGUIFILEDIALOG_OBJ) $(LIB_IMGUI_OBJ
 
 all: build run 
 
-run: emulator.exe
-	./emulator.exe
+run: emulator$(EXE)
+	./emulator$(EXE)
 
-build: emulator.exe
+build: emulator$(EXE)
 
-emulator.exe: $(LIBOBJ) $(OBJ)
-	$(CXX) -o emulator.exe $(OBJ) $(LIBOBJ) $(LDFLAGS)
+emulator$(EXE): $(LIBOBJ) $(OBJ)
+	$(CXX) -o emulator$(EXE) $(OBJ) $(LIBOBJ) $(LDFLAGS)
 
 build/%.o: src/%.cpp $(wildcard src/*.h) Makefile
 	$(CXX) $(CFLAGS) -o $@ -c $<

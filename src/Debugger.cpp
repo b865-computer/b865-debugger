@@ -38,7 +38,7 @@ int DebuggerData::init(std::string configFileName)
 
     std::string line;
     std::string type;
-    unsigned long long begin;
+    uint64_t begin;
     while (std::getline(debugSymbolFile, line))
     {
         begin = line.find(' ');

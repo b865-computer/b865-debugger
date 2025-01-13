@@ -52,7 +52,7 @@ void error_callback(int error, const char *description)
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool GUI::LoadTextureFromMemory(const void *data, unsigned long long data_size, GLuint *out_texture, int *out_width, int *out_height)
+bool GUI::LoadTextureFromMemory(const void *data, uint64_t data_size, GLuint *out_texture, int *out_width, int *out_height)
 {
     // Load from file
     int image_width = 0;
@@ -89,14 +89,20 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
     if (f == NULL)
         return false;
     fseek(f, 0, SEEK_END);
-    unsigned long long file_size = (unsigned long long)ftell(f);
+    uint64_t file_size = (uint64_t)ftell(f);
     if (file_size == -1)
         return false;
     fseek(f, 0, SEEK_SET);
     void *file_data = IM_ALLOC(file_size);
-    fread(file_data, 1, file_size, f);
+    if (fread(file_data, 1, file_size, f) != file_size)
+    {
+        IM_FREE(file_data);
+        fclose(f);
+        return false;
+    }
     bool ret = LoadTextureFromMemory(file_data, file_size, out_texture, out_width, out_height);
     IM_FREE(file_data);
+    fclose(f);
     return ret;
 }
 
@@ -437,7 +443,7 @@ int GUI::mainLoop()
                 ImGui::Text("InsCycle: %i", m_CPUStatus.InsCycle);
                 ImGui::Text("AdrCycle: %i", m_CPUStatus.AdrCycle);
                 ImGui::Text("Addressing: %s", m_CPUStatus.AdrState ? "true" : "false");
-                ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals);
+                ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals.val);
                 ImGui::Text("RI: %i", m_CPUStatus.RI);
                 ImGui::Text("RO: %i", m_CPUStatus.RO);
                 ImGui::Text("ALU OP: %i", m_CPUStatus.ALU_OP);
@@ -511,7 +517,7 @@ int GUI::mainLoop()
             {
                 editor.SetText(noOpenedFileText);
             }
-            for (unsigned long long i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
+            for (uint64_t i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
             {
                 bool currentBreakpoint = false;
                 if (i == currentPosition.fileID)
