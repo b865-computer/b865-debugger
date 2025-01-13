@@ -131,7 +131,6 @@ void CPU::cycle()
     {
         return;
     }
-    AddrMode = AdrModeSelect ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4);
     if (AdrState)
     {
         signals.val = AdrSignalTable[AddrMode][AdrCycle++];
@@ -150,11 +149,6 @@ void CPU::cycle()
 
 void CPU::executeSignals()
 {
-    if (signals.ROM_SE && (AddrMode != 6))
-    {
-        AdrCycle = 0;
-        AdrState = AdrState ? false : true;
-    }
     if(signals.IMC && (AddrMode == 6))
     {
         signals.CE = 1;
@@ -173,6 +167,12 @@ void CPU::executeSignals()
     if (InsCycle == 1 && !AdrModeSelect && started)
     {
         IR0 = mem.get(MAR.addr);
+    }
+    AddrMode = (!AdrModeSelect) ? (IR1 & 0xF) : ((IR1 & 0xF0) >> 4);
+    if (signals.ROM_SE && (AddrMode != 6))
+    {
+        AdrCycle = 0;
+        AdrState = AdrState ? false : true;
     }
 
     if (signals.CE)
