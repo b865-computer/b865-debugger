@@ -703,10 +703,7 @@ int GUI::mainLoop()
             ImGui::Text("Terminal");
             ImGui::Separator();
             ImGui::BeginChild("#Text");
-            for(const auto& line : *ConsoleText)
-            {
-                ImGui::TextWrapped("%s", line.c_str());
-            }
+            ImGui::TextWrapped((*ConsoleText).c_str());
             ImGui::EndChild();
         }
         if(console)
