@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "gui.h"
 #include "TextEditor.h"
-#include "FilePath.h"
+#include "Utils.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -535,6 +535,7 @@ int GUI::mainLoop()
                         else
                         {
                             fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+                            displayError("Unable to open file: %s", openedFileName.c_str());
                         }
                     }
                     if (currentBreakpoint)
@@ -702,10 +703,7 @@ int GUI::mainLoop()
             ImGui::Text("Terminal");
             ImGui::Separator();
             ImGui::BeginChild("#Text");
-            for(const auto& line : *ConsoleText)
-            {
-                ImGui::TextWrapped("%s", line.c_str());
-            }
+            ImGui::TextWrapped((*ConsoleText).c_str());
             ImGui::EndChild();
         }
         if(console)

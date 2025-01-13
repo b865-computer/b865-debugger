@@ -39,7 +39,7 @@ public:
     std::vector<debugSym>& m_symbolData;
     uint64_t m_frequencyHZ = 1000000;
     bool buildRunning = false;
-    std::vector<std::string>* ConsoleText;
+    std::string* ConsoleText;
     bool ins_level;
 
 private:

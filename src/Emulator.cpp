@@ -1,168 +1,5 @@
 #include "Emulator.h"
-#include "FilePath.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-typedef HANDLE M_PROCESS_OUT;
-typedef HANDLE M_PROCESS;
-#define M_PROCESS_INVALID INVALID_HANDLE_VALUE
-#else
-#include <fcntl.h>
-#include <unistd.h>
-typedef FILE* M_PROCESS_OUT;
-typedef bool M_PROCESS;
-#define M_PROCESS_INVALID 0
-#endif
-
-M_PROCESS_OUT startProgram(const std::string& cwd, const std::string& cmd, M_PROCESS& process)
-{
-#ifdef _WIN32
-    std::string command;
-    if(cwd.size() > 1)
-    {
-        command = "powershell /c \"cd " + cwd + " | " + cmd + "\"";
-    }
-    else
-    {
-        command = "powershell /c \"cd . | " + cmd + "\"";
-    }
-    HANDLE outWrite;
-    HANDLE outRead;
-    SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
-    if(!CreatePipe(&outRead, &outWrite, &sa, 0))
-    {
-        fprintf(stderr, "Error creating pipe: %d\n", GetLastError());
-        return INVALID_HANDLE_VALUE;
-    }
-    if(!SetHandleInformation(outRead, HANDLE_FLAG_INHERIT, 0))
-    {
-        fprintf(stderr, "Error setting handle information: %d\n", GetLastError());
-        CloseHandle(outRead);
-        CloseHandle(outWrite);
-        return INVALID_HANDLE_VALUE;
-    }
-    STARTUPINFOA si = {sizeof(STARTUPINFOA)};
-    si.dwFlags = STARTF_USESTDHANDLES;
-    si.hStdOutput = outWrite;
-    si.hStdError = outWrite;
-
-    PROCESS_INFORMATION pi = {0};
-
-    // int len = MultiByteToWideChar(CP_UTF8, 0, cmd.c_str(), -1, NULL, 0);
-    // std::wstring wcmd(len, L'\0');
-    // MultiByteToWideChar(CP_UTF8, 0, cmd.c_str(), -1, &wcmd[0], len);
-
-    if(!CreateProcessA(NULL,
-                        const_cast<char*>(command.c_str()),
-                        NULL,
-                        NULL,
-                        TRUE,
-                        CREATE_NO_WINDOW,
-                        NULL,
-                        NULL,
-                        &si,
-                        &pi))
-    {
-        fprintf(stderr, "Error creating process: %d\n", GetLastError());
-        CloseHandle(outRead);
-        CloseHandle(outWrite);
-        return INVALID_HANDLE_VALUE;
-    }
-
-    CloseHandle(outWrite);
-    CloseHandle(pi.hThread);
-    process = pi.hProcess;
-    return outRead;
-#else
-    process = (bool)0;
-    std::string command = cmd;
-    if(cwd.size())
-    {
-        command = "bin/bash -r cd" + cwd + " && " + cmd;
-    }
-    FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe)
-    {
-        fprintf(stderr, "Error creating process.\n");
-        return nullptr;
-    }
-
-    int fd = fileno(pipe);
-    int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-    process = (bool)1;
-    return pipe;
-#endif
-    return 0; 
-}
-
-bool pollProgramOutput(M_PROCESS_OUT process, std::vector<std::string>& outPutLines)
-{
-#ifdef _WIN32
-    DWORD bytesRead;
-    char buffer[128];
-    bool dataAvailable = false;
-
-    while(true)
-    {
-        if(!PeekNamedPipe(process, NULL, 0, NULL, &bytesRead, NULL))
-        {
-            return false;
-        }
-
-        if(bytesRead == 0)
-        {
-             break;
-        }
-
-        if(ReadFile(process, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
-        {
-            buffer[bytesRead] = '\0';
-            outPutLines.push_back(buffer);
-            dataAvailable = true;
-        }
-        else
-        {
-            break;
-        }
-    }
-    return dataAvailable;
-#else
-    char buffer[128];
-    while(fgets(buffer, sizeof(buffer), process) != nullptr)
-    {
-        outPutLines.push_back(buffer);
-    }
-    int status = pclose(pipe)
-    return (status == -1);
-#endif
-    return false;
-}
-
-unsigned long programExitCode(M_PROCESS process, M_PROCESS_OUT out, bool* running)
-{
-#ifdef _WIN32
-    DWORD exitCode;
-    *running = true;
-    if(GetExitCodeProcess(process, &exitCode) && exitCode != STILL_ACTIVE)
-    {
-        *running = false;
-        CloseHandle(out);
-        CloseHandle(process);
-    }
-    else
-    {
-        return 0;
-    }
-    return exitCode;
-#else
-    (void)process;
-    (void)out;
-    (void)running;
-    return 0;
-#endif
-}
-
+#include "Utils.h"
 
 CPU cpu;
 
@@ -228,7 +65,7 @@ int Emulator::load(std::vector<uint8_t> &programData)
 
 int Emulator::main()
 {
-    std::vector<std::string> outputLines;
+    std::string outputLines;
     m_gui.ConsoleText = &outputLines;
     M_PROCESS_OUT buildProcessOut;
     M_PROCESS buildProcess;
@@ -241,7 +78,11 @@ int Emulator::main()
         m_gui.mainLoop();
         if(!m_clock.getStatus())
         {
-            m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr);
+            // Check if the PC points to the instruction, PC is always 1 byte ahead of the last memory address.
+            if((m_cpu.mem.get(m_cpu.getStatus().PC.addr - 1) & 0x1F) == (m_cpu.getStatus().IR0 & 0x1F))
+            {
+                m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr - 1);
+            }
         }
         if(m_gui.ins_level && !ins_level)
         {
@@ -263,11 +104,9 @@ int Emulator::main()
         }
         if(m_gui.buildRunning && !buildProcessRunning)
         {
-#ifdef _WIN32
             buildCmd = "make";
-#endif
             outputLines.clear();
-            outputLines.push_back(buildCmd);
+            outputLines += buildCmd + "\n";
             buildProcessOut = startProgram(m_gui.projectPath, buildCmd, buildProcess);
             if(buildProcess == M_PROCESS_INVALID || buildProcessOut == M_PROCESS_INVALID)
             {
@@ -289,7 +128,7 @@ int Emulator::main()
                 }
                 if(!buildProcessRunning)
                 {
-                    outputLines.push_back("Process exited with code: " + std::to_string(exitCode));
+                    outputLines += ("Process exited with code: " + std::to_string(exitCode) + "\n");
                 }
             }
             m_gui.buildRunning = buildProcessRunning;

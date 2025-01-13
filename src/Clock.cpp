@@ -244,7 +244,7 @@ void Clock::clockThreadFunc()
             counter = 0;
             cycle_duration = std::chrono::nanoseconds(m_fq.ns);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if (!m_tick)
             {
                 continue;
