@@ -75,6 +75,15 @@ END:
     return filename;
 }
 
+std::string getFnWithoutPath(std::string filename)
+{
+    if(filename.find_last_of("\\/") != std::string::npos)
+    {
+        filename.erase(0, filename.find_last_of("\\/") + 1);
+    }
+    return filename;
+}
+
 /// @brief checks if the extension of the file equals to the given extension
 /// @param filename the filename
 /// @param ext the extension to check, '.' must not be included in the extension
@@ -166,23 +175,25 @@ M_PROCESS_OUT startProgram(const std::string& cwd, const std::string& cmd, M_PRO
     process = pi.hProcess;
     return outRead;
 #else
-    process = (bool)0;
-    std::string command = cmd;
-    if(cwd.size())
-    {
-        command = "bin/bash -r cd" + cwd + " && " + cmd;
+    process = false;
+    std::string command;
+    if (cwd.size()) {
+        command = "cd " + cwd + " && " + cmd + " 2>&1";
+    } else {
+        command = cmd + " 2>&1";
     }
+
     FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe)
-    {
+    if (!pipe) {
         fprintf(stderr, "Error creating process.\n");
+        process = false;
         return nullptr;
     }
 
     int fd = fileno(pipe);
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-    process = (bool)1;
+    process = true;
     return pipe;
 #endif
     return 0; 
@@ -220,13 +231,21 @@ bool pollProgramOutput(M_PROCESS_OUT process, std::string& outPutLines)
     }
     return dataAvailable;
 #else
+    if (!process) {
+        return false;
+    }
+
     char buffer[128];
-    while(fgets(buffer, sizeof(buffer), process) != nullptr)
-    {
+
+    while (fgets(buffer, sizeof(buffer), process) != nullptr) {
         outPutLines += buffer;
     }
-    int status = pclose(process);
-    return (status == -1);
+    // Check if the process has terminated by testing EOF
+    if (feof(process)) {
+        return false; // Process is finished
+    }
+
+    return true;
 #endif
     return false;
 }
@@ -248,9 +267,17 @@ unsigned long programExitCode(M_PROCESS process, M_PROCESS_OUT out, bool* runnin
     }
     return exitCode;
 #else
-    (void)process;
-    (void)out;
-    (void)running;
+    if (!process || !out) {
+        *running = false;
+        return 0;
+    }
+
+    int status = pclose(out);
+    if(status != -1)
+    {
+        *running = false;
+        return WEXITSTATUS(status);
+    }
     return 0;
 #endif
 }

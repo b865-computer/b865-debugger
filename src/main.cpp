@@ -1,5 +1,3 @@
-#include <iostream>
-#include <cstdio>
 #include "Emulator.h"
 #include "Utils.h"
 

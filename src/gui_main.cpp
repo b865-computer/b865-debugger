@@ -25,9 +25,10 @@ uint64_t customFrequencyHZ = 1;
 bool fileOpenInput = false;
 bool showRealFrequency = false;
 std::string openedFileName = "";
-std::string Path = "";
 bool changedSource = false;
 bool console = false;
+
+GUI* gui;
 
 enum FileInputType
 {
@@ -122,16 +123,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     {
         if (openedFileName.size())
         {
-            std::ofstream file(Path + '/' + openedFileName);
+            std::ofstream file(openedFileName);
             if (file.is_open())
             {
-                file << editor.GetText();
+                auto text = editor.GetText();
+                if(text[text.size() - 1] == '\n')
+                {
+                    text.pop_back();
+                }
+                file << text;
                 file.close();
                 changedSource = true;
             }
             else
             {
                 fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+                gui->displayError("Unable to open file: %s\n", openedFileName.c_str());
             }
         }
     }
@@ -150,6 +157,7 @@ void GUI::terminate()
 
 int GUI::init()
 {
+    gui = this;
     m_pheripherials = m_cpu.mem.getPheripherials(&m_pheriphCount);
 
     glfwSetErrorCallback(error_callback);
@@ -524,13 +532,13 @@ int GUI::mainLoop()
                 {
                     currentBreakpoint = true;
                 }
-                if (ImGui::Button(sourceFileNames[i].c_str()) || (currentBreakpoint && currentPosition.address != lastPosition))
+                if (ImGui::Button(getFnWithoutPath(sourceFileNames[i]).c_str()) || (currentBreakpoint && currentPosition.address != lastPosition))
                 {
                     lastPosition = currentPosition.address;
                     if (openedFileName != sourceFileNames[i])
                     {
                         openedFileName = sourceFileNames[i];
-                        std::ifstream file(projectPath + '/' + openedFileName);
+                        std::ifstream file(openedFileName, std::ios::in);
                         if (file.is_open())
                         {
                             std::stringstream buffer;
@@ -596,7 +604,6 @@ int GUI::mainLoop()
                             if (c == '/' || c == '\\')
                             {
                                 projectPath = filePathName.substr(0, i);
-                                Path = projectPath;
                                 break;
                             }
                         }

@@ -1,12 +1,14 @@
 #include "Debugger.h"
 #include <fstream>
 #include <json/json.h>
+#include "Utils.h"
 
 /// @brief initializes the DebuggerData class based on the given json file
 /// @param configFileName the configuration .json file
 /// @return 0 if the initialization was successful, 1 otherwise
 int DebuggerData::init(std::string configFileName)
 {
+    std::string path = getPath(configFileName);
     std::ifstream configFile(configFileName, std::ios::in);
     if (!configFile.is_open())
     {
@@ -18,15 +20,8 @@ int DebuggerData::init(std::string configFileName)
     configFile.close();
     std::string debugSymbolFileName(config["dbg"].asString());
 
-    for (int i = (configFileName.length() - 1); i > 0; i--)
-    {
-        char c = configFileName.at(i);
-        if (c == '/' || c == '\\')
-        {
-            debugSymbolFileName = configFileName.substr(0, i + 1) + debugSymbolFileName; // append the path to the debug symbol file name
-            break;
-        }
-    }
+    debugSymbolFileName = path + "/" + debugSymbolFileName;
+
     std::ifstream debugSymbolFile(debugSymbolFileName, std::ios::in);
     if (!debugSymbolFile.is_open())
     {
@@ -39,6 +34,7 @@ int DebuggerData::init(std::string configFileName)
     std::string line;
     std::string type;
     uint64_t begin;
+    AdrData.clear();
     while (std::getline(debugSymbolFile, line))
     {
         begin = line.find(' ');
@@ -76,14 +72,25 @@ int DebuggerData::init(std::string configFileName)
         }
         else if (type == "FILE")
         {
-            filenames.push_back(line.substr(begin + 1));
+            if(line.find_last_of("\n\r") != std::string::npos)
+            {
+                // erase the newline charachter
+                line.erase(line.find_last_of("\n\r"));
+            }
+            filenames.push_back(path + "/" + line.substr(begin + 1));
         }
         else if (type == "LOAD")
         {
-            filenames.insert(filenames.begin(), line.substr(begin + 1));
+            if(line.find_last_of("\n\r") != std::string::npos)
+            {
+                // erase the newline charachter
+                line.erase(line.find_last_of("\n\r"));
+            }
+            filenames.insert(filenames.begin(), path + "/" + line.substr(begin + 1));
         }
     }
     debugSymbolFile.close();
+    SymbolData.clear();
     for (int i = 0; i < AdrData.size(); i++)
     {
         if(AdrData[i].line == debugSym::noLine)

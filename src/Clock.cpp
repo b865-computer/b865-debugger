@@ -59,9 +59,16 @@ void setThreadPriority(std::thread::native_handle_type handle, bool high_priorit
     sched_param sch_params;
     sch_params.sched_priority = high_priority ? sched_get_priority_max(SCHED_FIFO) : 0;
 
-    if (pthread_setschedparam(handle, high_priority ? SCHED_FIFO : SCHED_OTHER, &sch_params) != 0)
+    int result = pthread_setschedparam(handle, high_priority ? SCHED_FIFO : SCHED_OTHER, &sch_params) != 0;
+    if (result != 0)
     {
-        fprintf(stderr, "Failed to set thread priority.\n");
+        if (errno == EPERM) {
+            fprintf(stderr, "Failed to set thread priority: Insufficient permissions.\n");
+        } else if (errno == EINVAL) {
+            fprintf(stderr, "Failed to set thread priority: Invalid policy or priority.\n");
+        } else {
+            fprintf(stderr, "Failed to set thread priority. Error code: %d\n", result);
+        }
     }
 #endif
 }

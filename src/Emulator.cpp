@@ -48,7 +48,7 @@ int Emulator::load(std::string filename, std::string path)
             return 1;
         }
         m_gui.sourceFileNames = m_debuggerData.getFileNames();
-        filename = m_gui.projectPath + '/' + m_gui.sourceFileNames[0];
+        filename = m_gui.sourceFileNames[0];
     }
     if(m_cpu.loadProgramFromFile(filename))
     {
