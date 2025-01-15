@@ -4,7 +4,6 @@
 
 #include "Common.h"
 #include "atomic"
-#include "chrono"
 
 class FQ
 {

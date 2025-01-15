@@ -25,9 +25,10 @@ uint64_t customFrequencyHZ = 1;
 bool fileOpenInput = false;
 bool showRealFrequency = false;
 std::string openedFileName = "";
-std::string Path = "";
 bool changedSource = false;
 bool console = false;
+
+GUI* gui;
 
 enum FileInputType
 {
@@ -52,7 +53,7 @@ void error_callback(int error, const char *description)
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool GUI::LoadTextureFromMemory(const void *data, unsigned long long data_size, GLuint *out_texture, int *out_width, int *out_height)
+bool GUI::LoadTextureFromMemory(const void *data, uint64_t data_size, GLuint *out_texture, int *out_width, int *out_height)
 {
     // Load from file
     int image_width = 0;
@@ -89,14 +90,20 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
     if (f == NULL)
         return false;
     fseek(f, 0, SEEK_END);
-    unsigned long long file_size = (unsigned long long)ftell(f);
+    uint64_t file_size = (uint64_t)ftell(f);
     if (file_size == -1)
         return false;
     fseek(f, 0, SEEK_SET);
     void *file_data = IM_ALLOC(file_size);
-    fread(file_data, 1, file_size, f);
+    if (fread(file_data, 1, file_size, f) != file_size)
+    {
+        IM_FREE(file_data);
+        fclose(f);
+        return false;
+    }
     bool ret = LoadTextureFromMemory(file_data, file_size, out_texture, out_width, out_height);
     IM_FREE(file_data);
+    fclose(f);
     return ret;
 }
 
@@ -116,16 +123,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     {
         if (openedFileName.size())
         {
-            std::ofstream file(Path + '/' + openedFileName);
+            std::ofstream file(openedFileName);
             if (file.is_open())
             {
-                file << editor.GetText();
+                auto text = editor.GetText();
+                if(text[text.size() - 1] == '\n')
+                {
+                    text.pop_back();
+                }
+                file << text;
                 file.close();
                 changedSource = true;
             }
             else
             {
                 fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
+                gui->displayError("Unable to open file: %s\n", openedFileName.c_str());
             }
         }
     }
@@ -144,6 +157,7 @@ void GUI::terminate()
 
 int GUI::init()
 {
+    gui = this;
     m_pheripherials = m_cpu.mem.getPheripherials(&m_pheriphCount);
 
     glfwSetErrorCallback(error_callback);
@@ -214,19 +228,19 @@ int GUI::init()
     toolBarImage_width = 0;
     toolBarImage_height = 0;
     resetImage_id = 0;
-    bool ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/reset.png").c_str(), &resetImage_id, &toolBarImage_width, &toolBarImage_height);
+    bool ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/reset.png").c_str(), &resetImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     stopImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/stop.png").c_str(), &stopImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/stop.png").c_str(), &stopImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     startImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/start.png").c_str(), &startImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/start.png").c_str(), &startImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     tickImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     errorImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
@@ -437,7 +451,7 @@ int GUI::mainLoop()
                 ImGui::Text("InsCycle: %i", m_CPUStatus.InsCycle);
                 ImGui::Text("AdrCycle: %i", m_CPUStatus.AdrCycle);
                 ImGui::Text("Addressing: %s", m_CPUStatus.AdrState ? "true" : "false");
-                ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals);
+                ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals.val);
                 ImGui::Text("RI: %i", m_CPUStatus.RI);
                 ImGui::Text("RO: %i", m_CPUStatus.RO);
                 ImGui::Text("ALU OP: %i", m_CPUStatus.ALU_OP);
@@ -511,20 +525,20 @@ int GUI::mainLoop()
             {
                 editor.SetText(noOpenedFileText);
             }
-            for (unsigned long long i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
+            for (uint64_t i = 1; i < sourceFileNames.size(); i++) // start with 1 because 0 is the .hex file name
             {
                 bool currentBreakpoint = false;
                 if (i == currentPosition.fileID)
                 {
                     currentBreakpoint = true;
                 }
-                if (ImGui::Button(sourceFileNames[i].c_str()) || (currentBreakpoint && currentPosition.address != lastPosition))
+                if (ImGui::Button(getFnWithoutPath(sourceFileNames[i]).c_str()) || (currentBreakpoint && currentPosition.address != lastPosition))
                 {
                     lastPosition = currentPosition.address;
                     if (openedFileName != sourceFileNames[i])
                     {
                         openedFileName = sourceFileNames[i];
-                        std::ifstream file(projectPath + '/' + openedFileName);
+                        std::ifstream file(openedFileName, std::ios::in);
                         if (file.is_open())
                         {
                             std::stringstream buffer;
@@ -590,7 +604,6 @@ int GUI::mainLoop()
                             if (c == '/' || c == '\\')
                             {
                                 projectPath = filePathName.substr(0, i);
-                                Path = projectPath;
                                 break;
                             }
                         }

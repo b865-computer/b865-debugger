@@ -1,78 +1,5 @@
 #include "Clock.h"
-#include <thread>
-#include <chrono>
-#include <iostream>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
-#include <sched.h>
-#include <unistd.h>
-#endif
 #include <math.h>
-
-template<typename tVal>
-tVal map_value(std::pair<tVal,tVal> a, std::pair<tVal, tVal> b, tVal inVal)
-{
-  tVal inValNorm = inVal - a.first;
-  tVal aUpperNorm = a.second - a.first;
-  tVal normPosition = inValNorm / aUpperNorm;
-
-  tVal bUpperNorm = b.second - b.first;
-  tVal bValNorm = normPosition * bUpperNorm;
-  tVal outVal = b.first + bValNorm;
-
-  return outVal;
-}
-
-void pinThreadToCore(std::thread::native_handle_type handle, int core_id)
-{
-#ifdef _WIN32
-
-    DWORD_PTR mask = (1ULL << core_id);
-    if (!SetThreadAffinityMask((HANDLE)handle, mask))
-    {
-        fprintf(stderr, "Failed to set thread affinity. Error: %lu\n", GetLastError());
-    }
-#else
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core_id, &cpuset);
-
-    if (pthread_setaffinity_np(handle, sizeof(cpu_set_t), &cpuset) != 0)
-    {
-        fprintf(stderr, "Failed to set thread affinity.\n");
-    }
-#endif
-}
-
-void setThreadPriority(std::thread::native_handle_type handle, bool high_priority)
-{
-#ifdef _WIN32
-    int priority = high_priority ? THREAD_PRIORITY_HIGHEST : THREAD_PRIORITY_NORMAL;
-    if (!SetThreadPriority((HANDLE)handle, priority))
-    {
-        fprintf(stderr, "Failed to set thread priority. Error: %lu\n", GetLastError());
-    }
-#else
-    sched_param sch_params;
-    sch_params.sched_priority = high_priority ? sched_get_priority_max(SCHED_FIFO) : 0;
-
-    if (pthread_setschedparam(handle, high_priority ? SCHED_FIFO : SCHED_OTHER, &sch_params) != 0)
-    {
-        fprintf(stderr, "Failed to set thread priority.\n");
-    }
-#endif
-}
-
-
-
-// Dummy m_cycle_func for demonstration purposes
-void m_cycle_func()
-{
-    // Replace with actual functionality
-}
 
 // Constructor with default HZ
 FQ::FQ(uint64_t _HZ)
@@ -106,7 +33,7 @@ Clock::Clock(void (*_cycle_func)(void))
 void Clock::init()
 {
     end = false;
-    clockThread = std::thread(clockThreadFunc, this);
+    clockThread = std::thread(&Clock::clockThreadFunc, this);
 }
 
 void Clock::terminate()
@@ -188,7 +115,7 @@ uint64_t Clock::getHZ()
  * the time is based on the cycles executed by the clock, not
  * the real elapsed time.
  */
-unsigned long long Clock::getRunTimeCycles_ns()
+uint64_t Clock::getRunTimeCycles_ns()
 {
     return counter * m_fq.ns;
 }
@@ -198,7 +125,7 @@ std::chrono::nanoseconds Clock::getRunTime_ns()
     return m_now - m_start;
 }
 
-unsigned long long Clock::getCycles()
+uint64_t Clock::getCycles()
 {
     return counter;
 }
@@ -232,7 +159,7 @@ void Clock::clockThreadFunc()
         lower_threshold = m_targetFq.HZ - 50;
     }
 
-    reset_interval = std::chrono::nanoseconds((unsigned long long)1e9);
+    reset_interval = std::chrono::nanoseconds((uint64_t)1e9);
     
     while (!end)
     {
