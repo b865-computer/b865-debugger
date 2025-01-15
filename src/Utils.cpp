@@ -125,16 +125,6 @@ std::string getExt(std::string filename)
     return "";
 }
 
-void setCwdArgv0(char *argv0)
-{
-    g_cwd = getPath(argv0);
-}
-
-std::string getCwd()
-{
-    return g_cwd;
-}
-
 M_PROCESS_OUT startProgram(const std::string& cwd, const std::string& cmd, M_PROCESS& process)
 {
 #ifdef _WIN32

@@ -36,9 +36,6 @@ std::string getPath(std::string filename);
 bool isExtEqual(std::string filename, std::string ext);
 std::string getExt(std::string filename);
 
-void setCwdArgv0(char* argv0);
-std::string getCwd();
-
 M_PROCESS_OUT startProgram(const std::string& cwd, const std::string& cmd, M_PROCESS& process);
 bool pollProgramOutput(M_PROCESS_OUT process, std::string& outPutLines);
 unsigned long programExitCode(M_PROCESS process, M_PROCESS_OUT out, bool* running);

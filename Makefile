@@ -21,13 +21,15 @@ INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_IMGUIFILEDIALOG) -I
 CFLAGS = -g -O3 -fdiagnostics-color=always -std=c++17 -pthread $(INCLUDEPATH)
 CFLIBFLAGS = $(CFLAGS)
 
-# Linux
-# LDFLAGS = -lglfw -lGL -ljsoncpp
-# EXE_EXT = 
-
+ifeq ($(OS),Windows_NT)
 # Windows
-LDFLAGS = -lglfw3 -lopengl32 -ljsoncpp
-EXE_EXT = .exe
+	LDFLAGS := -lglfw3 -lopengl32 -ljsoncpp
+	EXE_EXT = .exe
+else
+# Linux
+	LDFLAGS := -lglfw -lGL -ljsoncpp
+	EXE_EXT = 
+endif
 
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp,build/%.o,$(SRC))
@@ -48,11 +50,15 @@ build: $(APP)
 $(APP): $(LIBOBJ) $(OBJ)
 	$(CXX) -o $(APP) $(OBJ) $(LIBOBJ) $(LDFLAGS)
 
-build/%.o: src/%.cpp $(wildcard src/*.h) Makefile
+build/%.o: src/%.cpp $(wildcard src/*.h)
 	$(CXX) $(CFLAGS) -o $@ -c $<
 
-lib/%.o: lib/%.cpp $(wildcard lib/**/.h) Makefile
+lib/%.o: lib/%.cpp $(wildcard lib/**/.h)
 	$(CXX) $(CFLIBFLAGS) -o $@ -c $<
 
-lib/%.o: lib/%.cc $(wildcard lib/**/.h) Makefile
+lib/%.o: lib/%.cc $(wildcard lib/**/.h)
 	$(CXX) $(CFLIBFLAGS) -o $@ -c $<
+
+CLEAN_TARGET = $(APP) $(OBJ) $(LIBOBJ)
+clean:
+	rm -fr $(CLEAN_TARGET)

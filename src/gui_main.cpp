@@ -228,19 +228,19 @@ int GUI::init()
     toolBarImage_width = 0;
     toolBarImage_height = 0;
     resetImage_id = 0;
-    bool ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/reset.png").c_str(), &resetImage_id, &toolBarImage_width, &toolBarImage_height);
+    bool ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/reset.png").c_str(), &resetImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     stopImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/stop.png").c_str(), &stopImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/stop.png").c_str(), &stopImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     startImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/start.png").c_str(), &startImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/start.png").c_str(), &startImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     tickImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
     errorImage_id = 0;
-    ret = LoadTextureFromFile(getFilePathFromExeRelative("./share/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
