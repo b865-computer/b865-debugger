@@ -10,3 +10,6 @@
 [submodule "lib/ImGuiColorTextEdit"]
 	path = lib/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "lib/nanosvg"]
+	path = lib/nanosvg
+	url = https://github.com/memononen/nanosvg.git

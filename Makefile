@@ -16,7 +16,9 @@ LIB_INTELHEX = lib/libintelhex
 LIB_INTELHEX_SRC = $(LIB_INTELHEX)/src/intelhex.cc
 LIB_INTELHEX_OBJ = $(LIB_INTELHEX_SRC:.cc=.o)
 
-INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_IMGUIFILEDIALOG) -I$(LIB_IMGUICOLOTEXTEDIT) -I$(LIB_INTELHEX)/include -Ilib/stb_image
+LIB_NANOSVG = lib/nanosvg/src
+
+INCLUDEPATH = -I$(LIB_IMGUI) -I$(LIB_IMGUI)/backends -I$(LIB_NANOSVG) -I$(LIB_IMGUIFILEDIALOG) -I$(LIB_IMGUICOLOTEXTEDIT) -I$(LIB_INTELHEX)/include -Ilib/stb_image
 
 CFLAGS = -g -O3 -fdiagnostics-color=always -std=c++17 -pthread $(INCLUDEPATH)
 CFLIBFLAGS = $(CFLAGS)
