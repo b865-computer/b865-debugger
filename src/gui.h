@@ -15,16 +15,23 @@
 class GUI
 {
 public:
+    enum ToolType
+    {
+        TOOL_EXPLORER,
+        TOOL_DEBUGGER,
+    };
+
     GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym>& symbolData);
     ~GUI();
     int init();
     void terminate();
     bool windowClosed();
-    int mainLoop();
+    int render();
     void displayError(const char* fmt, ...);
 
 private:
     void renderMenu();
+    void renderSideBar(int x, int y, int width, int height);
     bool LoadTextureFromMemory(const void *data, uint64_t data_size, GLuint *out_texture, int *out_width, int *out_height);
     bool LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *out_width, int *out_height);
 
@@ -43,6 +50,7 @@ public:
     bool ins_level;
 
 private:
+    ToolType sideBarToolType = TOOL_EXPLORER;
     GLFWwindow *window;
     const CPU_Status &m_CPUStatus;
     CPU &m_cpu;

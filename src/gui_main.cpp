@@ -11,8 +11,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 TextEditor editor;
 
@@ -46,6 +46,11 @@ GLuint stopImage_id = 0;
 GLuint startImage_id = 0;
 GLuint tickImage_id = 0;
 GLuint errorImage_id = 0;
+
+int sideBarImage_width = 0;
+int sideBarImage_height = 0;
+GLuint explorerImage_id = 0;
+GLuint debuggerImage_id = 0;
 
 void error_callback(int error, const char *description)
 {
@@ -239,8 +244,16 @@ int GUI::init()
     tickImage_id = 0;
     ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/tick.png").c_str(), &tickImage_id, &toolBarImage_width, &toolBarImage_height);
     IM_ASSERT(ret);
+    
     errorImage_id = 0;
     ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/error.png").c_str(), &errorImage_id, &errorImage_width, &errorImage_height);
+    IM_ASSERT(ret);
+
+    explorerImage_id = 0;
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/folder-outline.png").c_str(), &explorerImage_id, &sideBarImage_width, &sideBarImage_height);
+    IM_ASSERT(ret);
+    debuggerImage_id = 0;
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/bug-play.png").c_str(), &debuggerImage_id, &sideBarImage_width, &sideBarImage_height);
     IM_ASSERT(ret);
 
     editor.SetText(noOpenedFileText);
@@ -378,7 +391,33 @@ void GUI::renderMenu()
     }
 }
 
-int GUI::mainLoop()
+void GUI::renderSideBar(int x, int y, int width, int height)
+{
+    ImGui::Begin("SideBar", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::SetWindowPos(ImVec2(x, y));
+    ImGui::SetWindowSize(ImVec2(width, height));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    
+    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 0.5f));
+
+    if (ImGui::ImageButton("explorer_button", explorerImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    {
+        sideBarToolType = TOOL_EXPLORER;
+    }
+    if (ImGui::ImageButton("debugger_button", debuggerImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    {
+        sideBarToolType = TOOL_DEBUGGER;
+    }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+    ImGui::End();
+}
+
+int GUI::render()
 {
     if (!glfwWindowShouldClose(window))
     {
@@ -409,72 +448,81 @@ int GUI::mainLoop()
 
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
 
-        if (ImGui::Begin("Status", nullptr, flags))
+        renderSideBar(0, 44, display_w > (sideBarImage_width + 4) ? (sideBarImage_width + 4) : display_w, display_h - 44);
+
+        if (ImGui::Begin("SideTool", nullptr, flags))
         {
-            ImGui::SetWindowPos(ImVec2(0, 44));
-            ImGui::SetWindowSize(ImVec2(display_w > 200 ? 200 : display_w, display_h - 44));
-            ImGui::Text("Frequency: %lliHz", m_frequencyHZ);
-            if (showRealFrequency)
+            ImGui::SetWindowPos(ImVec2(72, 44));
+            ImGui::SetWindowSize(ImVec2(display_w > (sideBarImage_width + 204) ? (sideBarImage_width + 204) : display_w, display_h - 44));
+            if (sideBarToolType == TOOL_EXPLORER)
             {
-                ImGui::Text("Real freq. %.0fHz", ((double)m_clock.getCycles() / ((double)m_clock.getRunTime_ns().count() / 1e9)));
-            }
 
-            if (ImGui::CollapsingHeader("Registers"))
-            {
-                ImGui::Text("PC: 0x%04X", m_CPUStatus.PC.addr);
-                ImGui::Text("A: 0x%02X", m_CPUStatus.A);
-                ImGui::Text("B: 0x%02X", m_CPUStatus.B);
-                ImGui::Text("IR0: 0x%02X", m_CPUStatus.IR0);
-                ImGui::Text("IR1: 0x%02X", m_CPUStatus.IR1);
-                ImGui::Text("AR: 0x%02X", m_CPUStatus.AR);
-                ImGui::Separator();
-                ImGui::Text("ACC: 0x%02X", m_CPUStatus.registers[0]);
-                ImGui::Text("X: 0x%02X", m_CPUStatus.registers[1]);
-                ImGui::Text("Y: 0x%02X", m_CPUStatus.registers[2]);
-                ImGui::Text("SP: 0x%02X", m_CPUStatus.registers[3]);
-                ImGui::Text("R0: 0x%02X", m_CPUStatus.registers[4]);
-                ImGui::Text("R1: 0x%02X", m_CPUStatus.registers[5]);
-                ImGui::Text("R2: 0x%02X", m_CPUStatus.registers[6]);
-                ImGui::Text("R3: 0x%02X", m_CPUStatus.registers[7]);
             }
-
-            if (ImGui::CollapsingHeader("Flags"))
+            else if (sideBarToolType == TOOL_DEBUGGER)
             {
-                ImGui::Text("Carry: %i", m_CPUStatus.flags.carry);
-                ImGui::Text("Zero: %i", m_CPUStatus.flags.zero);
-                ImGui::Text("Negative: %i", m_CPUStatus.flags.negative);
-            }
-
-            if (ImGui::CollapsingHeader("Emulation internals"))
-            {
-                ImGui::Text("MAR: 0x%04X", m_CPUStatus.MAR.addr);
-                ImGui::Text("InsCycle: %i", m_CPUStatus.InsCycle);
-                ImGui::Text("AdrCycle: %i", m_CPUStatus.AdrCycle);
-                ImGui::Text("Addressing: %s", m_CPUStatus.AdrState ? "true" : "false");
-                ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals.val);
-                ImGui::Text("RI: %i", m_CPUStatus.RI);
-                ImGui::Text("RO: %i", m_CPUStatus.RO);
-                ImGui::Text("ALU OP: %i", m_CPUStatus.ALU_OP);
-            }
-
-            for (int i = 0; i < m_pheriphCount; i++)
-            {
-                if (ImGui::CollapsingHeader(m_pheripherials[0]->m_name.c_str()))
+                ImGui::Text("Frequency: %lliHz", m_frequencyHZ);
+                if (showRealFrequency)
                 {
-                    for (int i = 0; i < m_pheripherials[0]->m_regNames.size(); i++)
+                    ImGui::Text("Real freq. %.0fHz", ((double)m_clock.getCycles() / ((double)m_clock.getRunTime_ns().count() / 1e9)));
+                }
+
+                if (ImGui::CollapsingHeader("Registers"))
+                {
+                    ImGui::Text("PC: 0x%04X", m_CPUStatus.PC.addr);
+                    ImGui::Text("A: 0x%02X", m_CPUStatus.A);
+                    ImGui::Text("B: 0x%02X", m_CPUStatus.B);
+                    ImGui::Text("IR0: 0x%02X", m_CPUStatus.IR0);
+                    ImGui::Text("IR1: 0x%02X", m_CPUStatus.IR1);
+                    ImGui::Text("AR: 0x%02X", m_CPUStatus.AR);
+                    ImGui::Separator();
+                    ImGui::Text("ACC: 0x%02X", m_CPUStatus.registers[0]);
+                    ImGui::Text("X: 0x%02X", m_CPUStatus.registers[1]);
+                    ImGui::Text("Y: 0x%02X", m_CPUStatus.registers[2]);
+                    ImGui::Text("SP: 0x%02X", m_CPUStatus.registers[3]);
+                    ImGui::Text("R0: 0x%02X", m_CPUStatus.registers[4]);
+                    ImGui::Text("R1: 0x%02X", m_CPUStatus.registers[5]);
+                    ImGui::Text("R2: 0x%02X", m_CPUStatus.registers[6]);
+                    ImGui::Text("R3: 0x%02X", m_CPUStatus.registers[7]);
+                }
+
+                if (ImGui::CollapsingHeader("Flags"))
+                {
+                    ImGui::Text("Carry: %i", m_CPUStatus.flags.carry);
+                    ImGui::Text("Zero: %i", m_CPUStatus.flags.zero);
+                    ImGui::Text("Negative: %i", m_CPUStatus.flags.negative);
+                }
+
+                if (ImGui::CollapsingHeader("Emulation internals"))
+                {
+                    ImGui::Text("MAR: 0x%04X", m_CPUStatus.MAR.addr);
+                    ImGui::Text("InsCycle: %i", m_CPUStatus.InsCycle);
+                    ImGui::Text("AdrCycle: %i", m_CPUStatus.AdrCycle);
+                    ImGui::Text("Addressing: %s", m_CPUStatus.AdrState ? "true" : "false");
+                    ImGui::Text("Signals: 0x%08x", m_CPUStatus.signals.val);
+                    ImGui::Text("RI: %i", m_CPUStatus.RI);
+                    ImGui::Text("RO: %i", m_CPUStatus.RO);
+                    ImGui::Text("ALU OP: %i", m_CPUStatus.ALU_OP);
+                }
+
+                for (int i = 0; i < m_pheriphCount; i++)
+                {
+                    if (ImGui::CollapsingHeader(m_pheripherials[0]->m_name.c_str()))
                     {
-                        ImGui::Text(" %s: %i",
-                                    m_pheripherials[0]->m_regNames[i].c_str(),
-                                    m_pheripherials[0]->regs[i]);
+                        for (int i = 0; i < m_pheripherials[0]->m_regNames.size(); i++)
+                        {
+                            ImGui::Text(" %s: %i",
+                                        m_pheripherials[0]->m_regNames[i].c_str(),
+                                        m_pheripherials[0]->regs[i]);
+                        }
                     }
                 }
-            }
 
-            if (ImGui::CollapsingHeader("Symbols"))
-            {
-                for (int i = 0; i < m_symbolData.size(); i++)
+                if (ImGui::CollapsingHeader("Symbols"))
                 {
-                    ImGui::Text("%s: 0x%04X", m_symbolData[i].symbol.c_str(), m_symbolData[i].address);
+                    for (int i = 0; i < m_symbolData.size(); i++)
+                    {
+                        ImGui::Text("%s: 0x%04X", m_symbolData[i].symbol.c_str(), m_symbolData[i].address);
+                    }
                 }
             }
         }
@@ -485,7 +533,7 @@ int GUI::mainLoop()
         if (ImGui::Begin("ToolBar", nullptr, flags))
         {
             ImGui::SetWindowPos(ImVec2(0, 20));
-            ImGui::SetWindowSize(ImVec2(display_w < 200 ? display_w : 200, 30));
+            ImGui::SetWindowSize(ImVec2(display_w < (sideBarImage_width + 204) ? display_w : (sideBarImage_width + 204), 30));
             if (ImGui::ImageButton("reset", resetImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
             {
                 m_cpu.startExec();
@@ -519,8 +567,8 @@ int GUI::mainLoop()
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
         if (ImGui::Begin("FilesOpened", nullptr, flags))
         {
-            ImGui::SetWindowPos(ImVec2(display_w > 200 ? 200 : display_w, 20));
-            ImGui::SetWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, 30));
+            ImGui::SetWindowPos(ImVec2(display_w > (sideBarImage_width + 204) ? (sideBarImage_width + 204) : display_w, 20));
+            ImGui::SetWindowSize(ImVec2(display_w > (sideBarImage_width + 204) ? display_w - (sideBarImage_width + 204) : 0, 30));
             if (sourceFileNames.size() <= 1)
             {
                 editor.SetText(noOpenedFileText);
@@ -566,8 +614,8 @@ int GUI::mainLoop()
 
         ImGui::PopStyleVar(2);
 
-        ImGui::SetNextWindowPos(ImVec2(200, 44));
-        ImGui::SetNextWindowSize(ImVec2(display_w > 200 ? display_w - 200 : 0, display_h > (44 + (console ? 300 : 0)) ? display_h - (44 + (console ? 300 : 0)) : 0));
+        ImGui::SetNextWindowPos(ImVec2((sideBarImage_width + 204), 44));
+        ImGui::SetNextWindowSize(ImVec2(display_w > (sideBarImage_width + 204) ? display_w - (sideBarImage_width + 204) : 0, display_h > (44 + (console ? 300 : 0)) ? display_h - (44 + (console ? 300 : 0)) : 0));
 
         if (fileOpenInput)
         {
