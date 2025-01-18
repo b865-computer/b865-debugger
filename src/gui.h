@@ -10,28 +10,50 @@
 #include "CPU.h"
 #include "Clock.h"
 #include "Debugger.h"
-#include <any>
+#include "Window.h"
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void renderSideBar();
+void renderSideTool();
+void renderToolBar();
+void renderEditor();
+void renderConsole();
+void renderFilesOpened();
+
+enum FileInputType
+{
+    programFile = 0,
+    projectFile,
+};
 
 class GUI
 {
 public:
+    friend void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+    friend void renderSideBar();
+    friend void renderSideTool();
+    friend void renderToolBar();
+    friend void renderEditor();
+    friend void renderConsole();
+    friend void renderFilesOpened();
+
     enum ToolType
     {
         TOOL_EXPLORER,
         TOOL_DEBUGGER,
     };
 
-    GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym>& symbolData);
+    GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData);
     ~GUI();
     int init();
     void terminate();
     bool windowClosed();
-    int render();
-    void displayError(const char* fmt, ...);
+    int main();
+    void displayError(const char *fmt, ...);
 
 private:
     void renderMenu();
-    void renderSideBar(int x, int y, int width, int height);
+    int render();
     bool LoadTextureFromMemory(const void *data, uint64_t data_size, GLuint *out_texture, int *out_width, int *out_height);
     bool LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *out_width, int *out_height);
 
@@ -43,10 +65,10 @@ public:
     std::vector<breakpoint> breakpoints;
     breakpoint currentPosition;
     uint16_t lastPosition;
-    std::vector<debugSym>& m_symbolData;
+    std::vector<debugSym> &m_symbolData;
     uint64_t m_frequencyHZ = 1000000;
     bool buildRunning = false;
-    std::string* ConsoleText;
+    std::string *ConsoleText;
     bool ins_level;
 
 private:
@@ -61,6 +83,8 @@ private:
     std::string error_str;
     bool error_display;
     bool building = false;
+    
+    Window_Attrib* mainWindow;
 };
 
 #endif

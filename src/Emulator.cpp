@@ -75,7 +75,7 @@ int Emulator::main()
     start();
     while (isRunning())
     {
-        m_gui.render();
+        m_gui.main();
         if(!m_clock.getStatus())
         {
             // Check if the PC points to the instruction, PC is always 1 byte ahead of the last memory address.
