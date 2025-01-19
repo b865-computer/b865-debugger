@@ -1,7 +1,9 @@
 #include "gui.h"
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
+#include "FileExplorer.h"
 
+extern FileExplorer explorer;
 extern TextEditor editor;
 
 extern const char *noOpenedFileText;
@@ -57,76 +59,81 @@ void renderSideBar()
 
 void renderSideTool()
 {
-    if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
+    if(ImGui::Begin("SideTool", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
     {
-    }
-    else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
-    {
-        ImGui::Text("Frequency: %lliHz", gui->m_frequencyHZ);
-        if (showRealFrequency)
+        if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
         {
-            ImGui::Text("Real freq. %.0fHz", ((double)gui->m_clock.getCycles() / ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
+            explorer.render(true);
         }
-
-        if (ImGui::CollapsingHeader("Registers"))
+        else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
         {
-            ImGui::Text("PC: 0x%04X", gui->m_CPUStatus.PC.addr);
-            ImGui::Text("A: 0x%02X", gui->m_CPUStatus.A);
-            ImGui::Text("B: 0x%02X", gui->m_CPUStatus.B);
-            ImGui::Text("IR0: 0x%02X", gui->m_CPUStatus.IR0);
-            ImGui::Text("IR1: 0x%02X", gui->m_CPUStatus.IR1);
-            ImGui::Text("AR: 0x%02X", gui->m_CPUStatus.AR);
-            ImGui::Separator();
-            ImGui::Text("ACC: 0x%02X", gui->m_CPUStatus.registers[0]);
-            ImGui::Text("X: 0x%02X", gui->m_CPUStatus.registers[1]);
-            ImGui::Text("Y: 0x%02X", gui->m_CPUStatus.registers[2]);
-            ImGui::Text("SP: 0x%02X", gui->m_CPUStatus.registers[3]);
-            ImGui::Text("R0: 0x%02X", gui->m_CPUStatus.registers[4]);
-            ImGui::Text("R1: 0x%02X", gui->m_CPUStatus.registers[5]);
-            ImGui::Text("R2: 0x%02X", gui->m_CPUStatus.registers[6]);
-            ImGui::Text("R3: 0x%02X", gui->m_CPUStatus.registers[7]);
-        }
-
-        if (ImGui::CollapsingHeader("Flags"))
-        {
-            ImGui::Text("Carry: %i", gui->m_CPUStatus.flags.carry);
-            ImGui::Text("Zero: %i", gui->m_CPUStatus.flags.zero);
-            ImGui::Text("Negative: %i", gui->m_CPUStatus.flags.negative);
-        }
-
-        if (ImGui::CollapsingHeader("Emulation internals"))
-        {
-            ImGui::Text("MAR: 0x%04X", gui->m_CPUStatus.MAR.addr);
-            ImGui::Text("InsCycle: %i", gui->m_CPUStatus.InsCycle);
-            ImGui::Text("AdrCycle: %i", gui->m_CPUStatus.AdrCycle);
-            ImGui::Text("Addressing: %s", gui->m_CPUStatus.AdrState ? "true" : "false");
-            ImGui::Text("Signals: 0x%08x", gui->m_CPUStatus.signals.val);
-            ImGui::Text("RI: %i", gui->m_CPUStatus.RI);
-            ImGui::Text("RO: %i", gui->m_CPUStatus.RO);
-            ImGui::Text("ALU OP: %i", gui->m_CPUStatus.ALU_OP);
-        }
-
-        for (int i = 0; i < gui->m_pheriphCount; i++)
-        {
-            if (ImGui::CollapsingHeader(gui->m_pheripherials[0]->m_name.c_str()))
+            ImGui::Text("Frequency: %lliHz", gui->m_frequencyHZ);
+            if (showRealFrequency)
             {
-                for (int i = 0; i < gui->m_pheripherials[0]->m_regNames.size(); i++)
+                ImGui::Text("Real freq. %.0fHz", ((double)gui->m_clock.getCycles() / ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
+            }
+
+            if (ImGui::CollapsingHeader("Registers"))
+            {
+                ImGui::Text("PC: 0x%04X", gui->m_CPUStatus.PC.addr);
+                ImGui::Text("A: 0x%02X", gui->m_CPUStatus.A);
+                ImGui::Text("B: 0x%02X", gui->m_CPUStatus.B);
+                ImGui::Text("IR0: 0x%02X", gui->m_CPUStatus.IR0);
+                ImGui::Text("IR1: 0x%02X", gui->m_CPUStatus.IR1);
+                ImGui::Text("AR: 0x%02X", gui->m_CPUStatus.AR);
+                ImGui::Separator();
+                ImGui::Text("ACC: 0x%02X", gui->m_CPUStatus.registers[0]);
+                ImGui::Text("X: 0x%02X", gui->m_CPUStatus.registers[1]);
+                ImGui::Text("Y: 0x%02X", gui->m_CPUStatus.registers[2]);
+                ImGui::Text("SP: 0x%02X", gui->m_CPUStatus.registers[3]);
+                ImGui::Text("R0: 0x%02X", gui->m_CPUStatus.registers[4]);
+                ImGui::Text("R1: 0x%02X", gui->m_CPUStatus.registers[5]);
+                ImGui::Text("R2: 0x%02X", gui->m_CPUStatus.registers[6]);
+                ImGui::Text("R3: 0x%02X", gui->m_CPUStatus.registers[7]);
+            }
+
+            if (ImGui::CollapsingHeader("Flags"))
+            {
+                ImGui::Text("Carry: %i", gui->m_CPUStatus.flags.carry);
+                ImGui::Text("Zero: %i", gui->m_CPUStatus.flags.zero);
+                ImGui::Text("Negative: %i", gui->m_CPUStatus.flags.negative);
+            }
+
+            if (ImGui::CollapsingHeader("Emulation internals"))
+            {
+                ImGui::Text("MAR: 0x%04X", gui->m_CPUStatus.MAR.addr);
+                ImGui::Text("InsCycle: %i", gui->m_CPUStatus.InsCycle);
+                ImGui::Text("AdrCycle: %i", gui->m_CPUStatus.AdrCycle);
+                ImGui::Text("Addressing: %s", gui->m_CPUStatus.AdrState ? "true" : "false");
+                ImGui::Text("Signals: 0x%08x", gui->m_CPUStatus.signals.val);
+                ImGui::Text("RI: %i", gui->m_CPUStatus.RI);
+                ImGui::Text("RO: %i", gui->m_CPUStatus.RO);
+                ImGui::Text("ALU OP: %i", gui->m_CPUStatus.ALU_OP);
+            }
+
+            for (int i = 0; i < gui->m_pheriphCount; i++)
+            {
+                if (ImGui::CollapsingHeader(gui->m_pheripherials[0]->m_name.c_str()))
                 {
-                    ImGui::Text(" %s: %i",
-                                gui->m_pheripherials[0]->m_regNames[i].c_str(),
-                                gui->m_pheripherials[0]->regs[i]);
+                    for (int i = 0; i < gui->m_pheripherials[0]->m_regNames.size(); i++)
+                    {
+                        ImGui::Text(" %s: %i",
+                                    gui->m_pheripherials[0]->m_regNames[i].c_str(),
+                                    gui->m_pheripherials[0]->regs[i]);
+                    }
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Symbols"))
+            {
+                for (int i = 0; i < gui->m_symbolData.size(); i++)
+                {
+                    ImGui::Text("%s: 0x%04X", gui->m_symbolData[i].symbol.c_str(), gui->m_symbolData[i].address);
                 }
             }
         }
-
-        if (ImGui::CollapsingHeader("Symbols"))
-        {
-            for (int i = 0; i < gui->m_symbolData.size(); i++)
-            {
-                ImGui::Text("%s: 0x%04X", gui->m_symbolData[i].symbol.c_str(), gui->m_symbolData[i].address);
-            }
-        }
     }
+    ImGui::End();
 }
 
 void renderToolBar()
@@ -242,19 +249,13 @@ void renderEditor()
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string path = getPath(filePathName);
+                explorer.setDirectory(path);
                 if (fileOpenInputType == projectFile)
                 {
                     gui->NewProjectOpened = true;
                     gui->projectFileName = filePathName;
-                    for (int i = (filePathName.length() - 1); i > 0; i--)
-                    {
-                        char c = filePathName.at(i);
-                        if (c == '/' || c == '\\')
-                        {
-                            gui->projectPath = filePathName.substr(0, i);
-                            break;
-                        }
-                    }
+                    gui->projectPath = path;
                 }
                 else
                 {

@@ -27,12 +27,15 @@ bool GUI::windowClosed()
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include "TextEditor.h"
+#include "FileExplorer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
+FileExplorer explorer(".", [](const std::string& path){printf("File opened: %s\n", path.c_str());});
 
 TextEditor editor;
 
@@ -72,7 +75,7 @@ Window_Attrib window_side_tool("side_tool", 0, 0, 248, 0, true, 1);
 Window_Attrib window_toolBar("ToolBar", 0, 0, 248, 26, true, 1, true);
 Window_Attrib window_side_bar_tool("side_bar_tool", 0, 26, 248, 0, true, 0);
 Window_Attrib window_sideBar("SideBar", 0, 0, 48, 0, true, 1);
-Window_Attrib window_sideTool("SideTool", 48, 0, 200, 0, true, 0);
+Window_Attrib window_sideTool("SideTool", 48, 0, 200, 0, true, 0, true);
 Window_Attrib window_editor_console("editor_console", 248, 0, 0, 0, true, 0);
 Window_Attrib window_fileopen("FilesOpened", 0, 0, 0, 26, true, 1, true);
 Window_Attrib window_editor("Editor", 0, 26, 0, 0, true, 0);
@@ -195,12 +198,12 @@ void GUI::terminate()
 
 void printWindowLayouts(Window_Attrib *window, int indent = 0)
 {
-    fprintf(stdout, "%*s%s: posX: %d, posY: %d, width: %d, height: %d\n", indent, "", window->name.c_str(), window->x + window->offsetFromOriginX, window->y + window->offsetFromOriginY, window->width, window->height);
-    indent++;
-    for (auto child : window->children)
-    {
-        printWindowLayouts(child, indent);
-    }
+    // fprintf(stdout, "%*s%s: posX: %d, posY: %d, width: %d, height: %d\n", indent, "", window->name.c_str(), window->x + window->offsetFromOriginX, window->y + window->offsetFromOriginY, window->width, window->height);
+    // indent++;
+    // for (auto child : window->children)
+    // {
+    //     printWindowLayouts(child, indent);
+    // }
 }
 
 int GUI::init()
