@@ -2,7 +2,7 @@
 #ifndef _DEBUGGER_H_
 #define _DEBUGGER_H_
 
-#include "common.h"
+#include "Common.h"
 
 struct debugSym
 {

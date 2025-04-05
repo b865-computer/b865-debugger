@@ -28,6 +28,7 @@ bool GUI::windowClosed()
 #include <GLFW/glfw3.h>
 #include "TextEditor.h"
 #include "FileExplorer.h"
+#include "FileTab.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -35,7 +36,25 @@ bool GUI::windowClosed()
 #include <stdio.h>
 #include <stdlib.h>
 
-FileExplorer explorer(".", [](const std::string& path){printf("File opened: %s\n", path.c_str());});
+FileTabManager fileTabManager;
+
+FileTab::FileWarningCallbackReturnType fileCallBack(const std::string &str, FileTab::FileWarningCallbackType type)
+{
+    fprintf(stderr, "FileTab::FileWarningCallback: %s\n", str.c_str());
+    return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO;
+}
+
+void openFile(const std::string &path)
+{
+    fileTabManager.addFileTab(path, fileCallBack);
+}
+
+void refreshFiles()
+{
+    fileTabManager.refreshFileTabs();
+}
+
+FileExplorer explorer(".", openFile, refreshFiles);
 
 TextEditor editor;
 

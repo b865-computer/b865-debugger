@@ -3,7 +3,7 @@
 #ifndef _SIGNALTABLES_H_
 #define _SIGNALTABLES_H_
 
-#include "common.h"
+#include "Common.h"
 
 const uint32_t AdrSignalTable[16][8] =
     {

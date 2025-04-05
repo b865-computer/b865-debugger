@@ -2,7 +2,9 @@
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
 #include "FileExplorer.h"
+#include "FileTab.h"
 
+extern FileTabManager fileTabManager;
 extern FileExplorer explorer;
 extern TextEditor editor;
 
@@ -59,7 +61,7 @@ void renderSideBar()
 
 void renderSideTool()
 {
-    if(ImGui::Begin("SideTool", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+    if (ImGui::Begin("SideTool", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
     {
         if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
         {
@@ -141,7 +143,7 @@ void renderToolBar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if(ImGui::Begin("ToolBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
+    if (ImGui::Begin("ToolBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
     {
         if (ImGui::ImageButton("reset", resetImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
         {
@@ -179,46 +181,7 @@ void renderFilesOpened()
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     if (ImGui::Begin("FilesOpened", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
     {
-        if (gui->sourceFileNames.size() <= 1)
-        {
-            editor.SetText(noOpenedFileText);
-        }
-        for (uint64_t i = 1; i < gui->sourceFileNames.size(); i++) // start with 1, first one is the program file
-        {
-            bool currentBreakpoint = false;
-            if (i == gui->currentPosition.fileID)
-            {
-                currentBreakpoint = true;
-            }
-            if (ImGui::Button(getFnWithoutPath(gui->sourceFileNames[i]).c_str()) || (currentBreakpoint && gui->currentPosition.address != gui->lastPosition))
-            {
-                gui->lastPosition = gui->currentPosition.address;
-                if (openedFileName != gui->sourceFileNames[i])
-                {
-                    openedFileName = gui->sourceFileNames[i];
-                    std::ifstream file(openedFileName, std::ios::in);
-                    if (file.is_open())
-                    {
-                        std::stringstream buffer;
-                        buffer << file.rdbuf();
-                        editor.SetText(buffer.str());
-                        file.close();
-                    }
-                    else
-                    {
-                        fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
-                        gui->displayError("Unable to open file: %s", openedFileName.c_str());
-                    }
-                }
-                if (currentBreakpoint)
-                {
-                    TextEditor::Breakpoints brps;
-                    brps.insert(gui->currentPosition.line);
-                    editor.SetBreakpoints(brps);
-                }
-            }
-            ImGui::SameLine();
-        }
+        fileTabManager.renderFileTabs();
     }
     ImGui::End();
     ImGui::PopStyleVar(3);
@@ -274,6 +237,18 @@ void renderEditor()
     }
     else
     {
+        if (fileTabManager.changedCurrentTab())
+        {
+            FileTab *tab = fileTabManager.getCurrentFileTab();
+            if (tab == nullptr)
+            {
+                editor.SetText(noOpenedFileText);
+            }
+            else
+            {
+                editor.SetText(tab->getContent());
+            }
+        }
         editor.Render("");
     }
 }

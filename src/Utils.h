@@ -2,7 +2,7 @@
 #ifndef _B865_EMU_UTIL_H
 #define _B865_EMU_UTIL_H
 
-#include "common.h"
+#include "Common.h"
 
 #ifdef _WIN32
 #include <windows.h>

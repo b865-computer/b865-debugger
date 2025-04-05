@@ -44,7 +44,8 @@ private:
 class FileExplorer {
 public:
     using FileOpenCallback = std::function<void(const std::string&)>;
-    FileExplorer(const std::string& rootPath, FileOpenCallback onFileOpenCallback = nullptr);
+    using FileRefreshCallback = std::function<void(void)>;
+    FileExplorer(const std::string& rootPath, FileOpenCallback onFileOpenCallback = nullptr, FileRefreshCallback onFileRefreshCallback = nullptr);
     void render(bool disableImGuiBegin = false);
     void setDirectory(const std::string& newRootPath);
 
@@ -61,6 +62,7 @@ private:
     std::unique_ptr<FileWatcher> _fileWatcher;
     std::mutex _mutex;
     FileOpenCallback _onFileOpen;
+    FileRefreshCallback _onFileRefresh;
 
     void loadDirectory(const std::string& path);
     void renderTree(const std::string& path);

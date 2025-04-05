@@ -72,8 +72,8 @@ void FileWatcher::watch()
     _running = true;
 }
 
-FileExplorer::FileExplorer(const std::string &rootPath, FileOpenCallback onFileOpenCallback)
-    : _rootPath(rootPath), _currentPath(rootPath), _onFileOpen(onFileOpenCallback)
+FileExplorer::FileExplorer(const std::string &rootPath, FileOpenCallback onFileOpenCallback, FileRefreshCallback onFileRefreshCallback)
+    : _rootPath(rootPath), _currentPath(rootPath), _onFileOpen(onFileOpenCallback), _onFileRefresh(onFileRefreshCallback)
 {
     loadDirectory(_rootPath);
 
@@ -81,7 +81,11 @@ FileExplorer::FileExplorer(const std::string &rootPath, FileOpenCallback onFileO
     _fileWatcher = std::make_unique<FileWatcher>(_rootPath, [this](const std::string &)
                                                  {
             std::lock_guard<std::mutex> lock(_mutex);
-            loadDirectory(_rootPath); });
+            loadDirectory(_rootPath); 
+            if (_onFileRefresh)
+            {
+                _onFileRefresh();
+            }});
 }
 
 void FileExplorer::render(bool disableImGuiBegin)
