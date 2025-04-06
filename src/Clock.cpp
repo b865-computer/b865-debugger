@@ -132,6 +132,7 @@ uint64_t Clock::getCycles()
 
 void Clock::clockThreadFunc()
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
     // Pin the thread to a core and set its priority
 #ifdef _WIN32
     pinThreadToCore((std::thread::native_handle_type)GetCurrentThread(), 0); // Pin to core 0

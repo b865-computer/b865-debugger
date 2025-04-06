@@ -17,6 +17,7 @@ tVal map_value(std::pair<tVal,tVal> a, std::pair<tVal, tVal> b, tVal inVal)
 template double map_value<double>(std::pair<double, double>, std::pair<double, double>, double);
 
 std::string exeBasePath;
+std::string mainDir;
 std::string g_cwd;
 
 void initExeBasePath()
@@ -37,6 +38,14 @@ void initExeBasePath()
     std::string str(szPath);
 #endif
     exeBasePath = getPath(str);
+    if (exeBasePath.find("build") == exeBasePath.length() - 5)
+    {
+        mainDir = exeBasePath.substr(0, exeBasePath.length() - 6);
+    }
+    else
+    {
+        mainDir = exeBasePath;
+    }
 }
 
 std::string getExeBasePath()
@@ -54,7 +63,7 @@ std::string getFilePathFromExeRelative(std::string relPath)
     {
         goto END;
     }
-    relPath = exeBasePath + "/" + relPath;
+    relPath = mainDir + "/" + relPath;
 END:
     return relPath;
 }

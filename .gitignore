@@ -13,3 +13,5 @@ b865_debugger
 
 .vscode/
 build
+CMakeCache.txt
+Makefile
