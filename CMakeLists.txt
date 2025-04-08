@@ -9,6 +9,8 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
 add_executable(b865-debugger ${SRC_FILES})
 
+target_compile_options(b865-debugger PUBLIC -O3)
+
 target_include_directories(b865-debugger PUBLIC src lib/stb_image)
 
 find_package(OpenGL REQUIRED)
