@@ -16,8 +16,15 @@ int DebuggerData::init(std::string configFileName)
         return 1;
     }
     Json::Value config;
-    configFile >> config;
-    configFile.close();
+    try {
+        configFile >> config;
+        configFile.close();
+    }
+    catch (Json::RuntimeError &e)
+    {
+        printf("Json runtimeError: %s", e.what());
+        return 1;
+    }
     std::string debugSymbolFileName(config["dbg"].asString());
 
     debugSymbolFileName = path + "/" + debugSymbolFileName;
