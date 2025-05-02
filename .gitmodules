@@ -10,3 +10,6 @@
 [submodule "lib/ImGuiColorTextEdit"]
 	path = lib/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "lib/CdbgExpr"]
+	path = lib/CdbgExpr
+	url = https://github.com/rbel12b/CdbgExpr
