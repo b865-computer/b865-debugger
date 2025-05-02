@@ -13,13 +13,14 @@ void cycle_ins_level(void)
 }
 
 Emulator::Emulator()
-    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(cpu.getStatus(), m_clock, cpu, m_debuggerData.SymbolData)
+    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(*this, cpu.getStatus(), m_clock, cpu, m_debuggerData.SymbolData)
 {
     m_clock.setHZ(m_fq.HZ);
 }
 
 int Emulator::init()
 {
+    sym.cType.push_back(CdbgExpr::CType::LONGLONG);
     m_cpu.init();
     m_clock.init();
     return m_gui.init();
@@ -166,4 +167,58 @@ bool Emulator::isRunning()
         stop();
     }
     return false;
+}
+
+CdbgExpr::SymbolDescriptor& Emulator::getSymbol(const std::string &name)
+{   
+    sym.hasAddress = false;
+    return sym;
+}
+
+uint8_t Emulator::getByte(uint64_t address)
+{
+    if (address < 0x10000)
+    {
+        return m_cpu.mem.get(address);
+    }
+    return 0;
+}
+
+void Emulator::setByte(uint64_t address, uint8_t value)
+{
+    if (address < 0x10000)
+    {
+        m_cpu.mem.set(address, value);
+    }
+    return;
+}
+
+constexpr uint8_t Emulator::CTypeSize(CdbgExpr::CType type)
+{
+    switch (type)
+    {
+    case CdbgExpr::CType::DOUBLE:
+    case CdbgExpr::CType::LONGLONG:
+        return 8;
+
+    case CdbgExpr::CType::LONG:
+    case CdbgExpr::CType::FLOAT:
+        return 4;
+    
+    case CdbgExpr::CType::INT:
+        return 2;
+    
+    case CdbgExpr::CType::SHORT:
+    case CdbgExpr::CType::POINTER:
+        return 2;
+    
+    case CdbgExpr::CType::CHAR:
+    case CdbgExpr::CType::BOOL:
+        return 1;
+    
+    case CdbgExpr::CType::VOID:
+    default:
+        break;
+    }
+    return 0;
 }

@@ -2,6 +2,8 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
+class GUI;
+
 #include "Common.h"
 
 #include <GL/gl.h>
@@ -11,6 +13,7 @@
 #include "Clock.h"
 #include "Debugger.h"
 #include "Window.h"
+#include "Emulator.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void renderSideBar();
@@ -40,10 +43,11 @@ public:
     enum ToolType
     {
         TOOL_EXPLORER,
+        TOOL_EMUALTOR,
         TOOL_DEBUGGER,
     };
 
-    GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData);
+    GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData);
     ~GUI();
     int init();
     void terminate();
@@ -77,6 +81,7 @@ private:
     const CPU_Status &m_CPUStatus;
     CPU &m_cpu;
     Clock &m_clock;
+    Emulator &m_emulator;
     Pheriph **m_pheripherials = nullptr;
     int m_pheriphCount = 0;
     bool end = false;

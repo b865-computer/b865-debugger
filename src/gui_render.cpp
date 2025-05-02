@@ -1,8 +1,11 @@
+#include "Emulator.h"
 #include "gui.h"
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
 #include "FileExplorer.h"
 #include "FileTab.h"
+#include <imgui_stdlib.h>
+#include <CdbgExpr.h>
 
 extern FileTabManager fileTabManager;
 extern FileExplorer explorer;
@@ -36,6 +39,7 @@ extern int sideBarImage_width;
 extern int sideBarImage_height;
 extern GLuint explorerImage_id;
 extern GLuint debuggerImage_id;
+extern GLuint emulatorImage_id;
 
 void renderSideBar()
 {
@@ -50,6 +54,10 @@ void renderSideBar()
     {
         gui->sideBarToolType = GUI::ToolType::TOOL_EXPLORER;
     }
+    if (ImGui::ImageButton("emulator_button", emulatorImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    {
+        gui->sideBarToolType = GUI::ToolType::TOOL_EMUALTOR;
+    }
     if (ImGui::ImageButton("debugger_button", debuggerImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
     {
         gui->sideBarToolType = GUI::ToolType::TOOL_DEBUGGER;
@@ -59,6 +67,8 @@ void renderSideBar()
     ImGui::PopStyleVar(2);
 }
 
+std::string expr;
+
 void renderSideTool()
 {
     if (ImGui::Begin("SideTool", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
@@ -67,7 +77,7 @@ void renderSideTool()
         {
             explorer.render(true);
         }
-        else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
+        else if (gui->sideBarToolType == GUI::ToolType::TOOL_EMUALTOR)
         {
             ImGui::Text("Frequency: %lliHz", gui->m_frequencyHZ);
             if (showRealFrequency)
@@ -133,6 +143,22 @@ void renderSideTool()
                     ImGui::Text("%s: 0x%04X", gui->m_symbolData[i].symbol.c_str(), gui->m_symbolData[i].address);
                 }
             }
+        }
+        else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
+        {
+            ImGui::PushID("ipunt_expr");
+            ImGui::InputText("", &expr);
+            ImGui::PopID();
+            CdbgExpr::Expression e(expr, &gui->m_emulator);
+            std::string str;
+            try {
+                str = e.eval(true).toString();
+            }
+            catch (std::exception &e)
+            {
+                str = e.what();
+            }
+            ImGui::Text(str.c_str());
         }
     }
     ImGui::End();

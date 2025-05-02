@@ -1,7 +1,8 @@
+#include "Emulator.h"
 #include "gui.h"
 
-GUI::GUI(const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData)
-    : m_CPUStatus(status), m_clock(clock), m_cpu(cpu), m_symbolData(symbolData)
+GUI::GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData)
+    : m_CPUStatus(status), m_clock(clock), m_cpu(cpu), m_symbolData(symbolData), m_emulator(emulator)
 {
     m_pheripherials = nullptr;
     m_pheriphCount = 0;
@@ -88,6 +89,7 @@ int sideBarImage_width = 0;
 int sideBarImage_height = 0;
 GLuint explorerImage_id = 0;
 GLuint debuggerImage_id = 0;
+GLuint emulatorImage_id = 0;
 
 Window_Attrib window_main("main", 0, 20, 0, 0, true, 0);
 Window_Attrib window_side_tool("side_tool", 0, 0, 248, 0, true, 1);
@@ -347,6 +349,9 @@ int GUI::init()
 
     explorerImage_id = 0;
     ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/folder-outline.png").c_str(), &explorerImage_id, &sideBarImage_width, &sideBarImage_height);
+    IM_ASSERT(ret);
+    emulatorImage_id = 0;
+    ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/memory.png").c_str(), &emulatorImage_id, &sideBarImage_width, &sideBarImage_height);
     IM_ASSERT(ret);
     debuggerImage_id = 0;
     ret = LoadTextureFromFile(getFilePathFromExeRelative("./resources/bug-play.png").c_str(), &debuggerImage_id, &sideBarImage_width, &sideBarImage_height);

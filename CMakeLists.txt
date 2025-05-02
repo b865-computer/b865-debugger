@@ -24,4 +24,5 @@ target_link_libraries(b865-debugger
     OpenGL::GL
     glfw
     -ljsoncpp
+    CdbgExpr
 )
