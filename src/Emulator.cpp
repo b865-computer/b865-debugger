@@ -78,11 +78,7 @@ int Emulator::main()
         m_gui.main();
         if(!m_clock.getStatus())
         {
-            // Check if the PC points to the instruction, PC is always 1 byte ahead of the last memory address.
-            // if((m_cpu.mem.get(m_cpu.getStatus().PC.addr - 1) & 0x1F) == (m_cpu.getStatus().IR0 & 0x1F))
-            // {
-                m_gui.currentPosition = m_debuggerData.getPosition(m_cpu.getStatus().PC.addr - 1);
-            // }
+            m_gui.currentPosition = m_debuggerData.getPosition(m_cpu.getStatus().PC.addr - 1);
         }
         if(m_gui.ins_level && !ins_level)
         {
