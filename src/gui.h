@@ -47,7 +47,7 @@ public:
         TOOL_DEBUGGER,
     };
 
-    GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData);
+    GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu);
     ~GUI();
     int init();
     void terminate();
@@ -65,11 +65,8 @@ public:
     bool NewProjectOpened = false;
     std::string projectFileName;
     std::string projectPath;
-    std::vector<std::string> sourceFileNames;
-    std::vector<breakpoint> breakpoints;
-    breakpoint currentPosition;
+    CodePosition currentPosition;
     uint16_t lastPosition;
-    std::vector<debugSym> &m_symbolData;
     uint64_t m_frequencyHZ = 1000000;
     bool buildRunning = false;
     std::string *ConsoleText;
@@ -78,10 +75,10 @@ public:
 private:
     ToolType sideBarToolType = TOOL_EXPLORER;
     GLFWwindow *window;
+    Emulator &m_emulator;
     const CPU_Status &m_CPUStatus;
     CPU &m_cpu;
     Clock &m_clock;
-    Emulator &m_emulator;
     Pheriph **m_pheripherials = nullptr;
     int m_pheriphCount = 0;
     bool end = false;

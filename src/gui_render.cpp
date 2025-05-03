@@ -138,10 +138,7 @@ void renderSideTool()
 
             if (ImGui::CollapsingHeader("Symbols"))
             {
-                for (int i = 0; i < gui->m_symbolData.size(); i++)
-                {
-                    ImGui::Text("%s: 0x%04X", gui->m_symbolData[i].symbol.c_str(), gui->m_symbolData[i].address);
-                }
+                // TODO: implement this
             }
         }
         else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
@@ -275,6 +272,8 @@ void renderEditor()
                 editor.SetText(tab->getContent());
             }
         }
+        TextEditor::Breakpoints breakpoints = {(int)gui->currentPosition.line};
+        editor.SetBreakpoints(breakpoints);
         editor.Render("");
     }
 }

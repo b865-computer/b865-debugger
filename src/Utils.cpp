@@ -343,3 +343,12 @@ void setThreadPriority(std::thread::native_handle_type handle, bool high_priorit
     }
 #endif
 }
+
+void setCWD(std::string dir)
+{
+#ifdef _WIN32
+    _chdir(dir.c_str());
+#else
+    chdir(dir.c_str());
+#endif
+}

@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <direct.h>
 typedef HANDLE M_PROCESS_OUT;
 typedef HANDLE M_PROCESS;
 #define M_PROCESS_INVALID INVALID_HANDLE_VALUE
@@ -42,5 +43,7 @@ unsigned long programExitCode(M_PROCESS process, M_PROCESS_OUT out, bool* runnin
 
 void pinThreadToCore(std::thread::native_handle_type handle, int core_id);
 void setThreadPriority(std::thread::native_handle_type handle, bool high_priority);
+
+void setCWD(std::string dir);
 
 #endif

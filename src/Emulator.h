@@ -41,7 +41,7 @@ private:
     CPU &m_cpu;
     GUI m_gui;
     FQ m_fq;
-    DebuggerData m_debuggerData;
+    DebuggerDataHelper m_debuggerData;
 };
 
 #endif // _COMPUTER_H_

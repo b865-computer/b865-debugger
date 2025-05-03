@@ -13,7 +13,7 @@ void cycle_ins_level(void)
 }
 
 Emulator::Emulator()
-    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(*this, cpu.getStatus(), m_clock, cpu, m_debuggerData.SymbolData)
+    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(*this, cpu.getStatus(), m_clock, cpu)
 {
     m_clock.setHZ(m_fq.HZ);
 }
@@ -40,7 +40,6 @@ int Emulator::load(std::string filename, std::string path)
     if(isExtEqual(filename, "b865"))
     {
         m_gui.projectFileName = filename;
-        m_gui.sourceFileNames.clear();
         m_clock.setStatus(false);
         m_gui.NewProjectOpened = false;
         if(m_debuggerData.init(filename))
@@ -48,8 +47,8 @@ int Emulator::load(std::string filename, std::string path)
             m_gui.displayError("Failed to Open project:\n%s", m_gui.projectFileName.c_str());
             return 1;
         }
-        m_gui.sourceFileNames = m_debuggerData.getFileNames();
-        filename = m_gui.sourceFileNames[0];
+        std::string path = getPath(filename);
+        filename = path + "/" + m_debuggerData.getBinFile();
     }
     if(m_cpu.loadProgramFromFile(filename))
     {
@@ -80,10 +79,10 @@ int Emulator::main()
         if(!m_clock.getStatus())
         {
             // Check if the PC points to the instruction, PC is always 1 byte ahead of the last memory address.
-            if((m_cpu.mem.get(m_cpu.getStatus().PC.addr - 1) & 0x1F) == (m_cpu.getStatus().IR0 & 0x1F))
-            {
-                m_gui.currentPosition = m_debuggerData.getBreakpoint(m_cpu.getStatus().PC.addr - 1);
-            }
+            // if((m_cpu.mem.get(m_cpu.getStatus().PC.addr - 1) & 0x1F) == (m_cpu.getStatus().IR0 & 0x1F))
+            // {
+                m_gui.currentPosition = m_debuggerData.getPosition(m_cpu.getStatus().PC.addr - 1);
+            // }
         }
         if(m_gui.ins_level && !ins_level)
         {

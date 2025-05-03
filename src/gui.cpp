@@ -1,8 +1,8 @@
 #include "Emulator.h"
 #include "gui.h"
 
-GUI::GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu, std::vector<debugSym> &symbolData)
-    : m_CPUStatus(status), m_clock(clock), m_cpu(cpu), m_symbolData(symbolData), m_emulator(emulator)
+GUI::GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu)
+    : m_emulator(emulator), m_CPUStatus(status), m_clock(clock), m_cpu(cpu)
 {
     m_pheripherials = nullptr;
     m_pheriphCount = 0;

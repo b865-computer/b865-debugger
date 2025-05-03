@@ -2,33 +2,25 @@
 #ifndef _DEBUGGER_H_
 #define _DEBUGGER_H_
 
+#include "Parser/Parser.h"
 #include "Common.h"
 
-struct debugSym
-{
-    uint16_t address = 0;
-    uint64_t line = 0;
-    uint64_t fileID = 0;
-    std::string symbol; // can hold filename (only holds symbol name if line is equal to noLine)
-    const static uint64_t noLine = 0xFFFFFFFFFFFFFFFF;
-};
+typedef LinkerRecord CodePosition; // name = fileName
+typedef CodePosition breakpoint;
 
-typedef debugSym breakpoint;
-
-class DebuggerData
+class DebuggerDataHelper
 {
 public:
     int init(std::string configFileName);
-    std::vector<std::string> getFileNames();
-    int getBreakpointData(std::vector<breakpoint> &);
-    breakpoint getBreakpoint(uint16_t address);
+    std::string getBinFile();
+
+    CodePosition getPosition(uint64_t addr);
     
 public:
-    std::vector<debugSym> SymbolData;
 
 private:
-    std::vector<debugSym> AdrData;
-    std::vector<std::string> filenames;
+    std::string binfile;
+    DebuggerData m_data;
 };
 
-#endif
+#endif // _DEBUGGER_H_
