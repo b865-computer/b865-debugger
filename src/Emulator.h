@@ -25,6 +25,7 @@ public:
 
 public:
     CdbgExpr::SymbolDescriptor sym;
+    DebuggerDataHelper m_debuggerData;
     
     CdbgExpr::SymbolDescriptor& getSymbol(const std::string &name) override;
     uint8_t getByte(uint64_t address) override;
@@ -41,7 +42,6 @@ private:
     CPU &m_cpu;
     GUI m_gui;
     FQ m_fq;
-    DebuggerDataHelper m_debuggerData;
 };
 
 #endif // _COMPUTER_H_

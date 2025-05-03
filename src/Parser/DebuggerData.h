@@ -189,8 +189,12 @@ public:
 
     LineData getLine(uint64_t addr);
 
+    const std::vector<LinkerRecord>& getSymbolAddrs();
+
 private: 
     void checkScopeExists(Scope scope);
+
+    std::vector<LinkerRecord> symbolAddrs;
 };
 
 #endif

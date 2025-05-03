@@ -17,10 +17,10 @@ public:
     CodePosition getPosition(uint64_t addr);
     
 public:
+    DebuggerData data;
 
 private:
     std::string binfile;
-    DebuggerData m_data;
 };
 
 #endif // _DEBUGGER_H_

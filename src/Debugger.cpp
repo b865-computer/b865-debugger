@@ -33,9 +33,9 @@ int DebuggerDataHelper::init(std::string configFileName)
 
     DbgDataParser parser;
 
-    m_data = parser.parse(debugSymbolFileName);
+    data = parser.parse(debugSymbolFileName);
 
-    if (m_data.fail)
+    if (data.fail)
     {
         return 1;
     }
@@ -52,7 +52,7 @@ std::string DebuggerDataHelper::getBinFile()
 CodePosition DebuggerDataHelper::getPosition(uint64_t addr)
 {
     CodePosition pos;
-    auto line = m_data.getLine(addr);
+    auto line = data.getLine(addr);
     pos.name = line.filename;
     pos.addr = addr;
     pos.line = line.line;

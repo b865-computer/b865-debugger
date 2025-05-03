@@ -88,6 +88,10 @@ void DebuggerData::addLinkerRecord(const LinkerRecord &record)
             fileScope[record.scope.name].linkerRecords.push_back(record);
         }
     }
+    if (record.type == LinkerRecord::Type::SYMBOL_ADDR)
+    {
+        symbolAddrs.push_back(record);
+    }
 }
 
 LineData DebuggerData::getLine(uint64_t addr)
@@ -129,6 +133,11 @@ LineData DebuggerData::getLine(uint64_t addr)
     lineData.filename = record.name + ((record.type == LinkerRecord::Type::ASM_LINE) ? ".asm" : ".c");
     lineData.line = record.line;
     return lineData;
+}
+
+const std::vector<LinkerRecord> &DebuggerData::getSymbolAddrs()
+{
+    return symbolAddrs;
 }
 
 void DebuggerData::checkScopeExists(Scope scope)

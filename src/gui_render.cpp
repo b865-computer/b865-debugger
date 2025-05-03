@@ -138,7 +138,12 @@ void renderSideTool()
 
             if (ImGui::CollapsingHeader("Symbols"))
             {
-                // TODO: implement this
+                const auto& symbols = gui->m_emulator.m_debuggerData.data.getSymbolAddrs();
+                for (const auto& symbol : symbols)
+                {
+                    ImGui::Text(" %s: %i",
+                                symbol.name, symbol.addr);
+                }
             }
         }
         else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
