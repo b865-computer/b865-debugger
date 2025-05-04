@@ -195,7 +195,7 @@ SymbolRecord& Emulator::getSymbolRecord(const std::string &name)
 }
 
 
-CdbgExpr::SymbolDescriptor& Emulator::getSymbol(const std::string &name)
+CdbgExpr::SymbolDescriptor Emulator::getSymbol(const std::string &name)
 {
     return sym;
 }

@@ -23,7 +23,7 @@ public:
     int main();
     std::chrono::nanoseconds getRunTime_ns();
     
-    CdbgExpr::SymbolDescriptor& getSymbol(const std::string &name) override;
+    CdbgExpr::SymbolDescriptor getSymbol(const std::string &name) override;
     uint8_t getByte(uint64_t address) override;
     void setByte(uint64_t address, uint8_t value) override;
     uint8_t CTypeSize(CdbgExpr::CType type) override;
