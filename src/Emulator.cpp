@@ -132,7 +132,6 @@ int Emulator::main()
     }
     return 0;
 }
-
 void Emulator::start()
 {
     m_cpu.startExec();
@@ -164,9 +163,40 @@ bool Emulator::isRunning()
     return false;
 }
 
+SymbolRecord& Emulator::getSymbolRecord(const std::string &name)
+{
+    for (auto& symbol : m_debuggerData.data.globalScope.symbols)
+    {
+        if (symbol.name == name)
+        {
+            return symbol;
+        }
+    }
+    for (auto& pair : m_debuggerData.data.fileScope)
+    {
+        for (auto& symbol : pair.second.symbols)
+        {
+            if (symbol.name == name)
+            {
+                return symbol;
+            }
+        }
+    }
+    for (auto& pair : m_debuggerData.data.funcScope)
+    {
+        for (auto& symbol : pair.second.symbols)
+        {
+            if (symbol.name == name)
+            {
+                return symbol;
+            }
+        }
+    }
+}
+
+
 CdbgExpr::SymbolDescriptor& Emulator::getSymbol(const std::string &name)
-{   
-    sym.hasAddress = false;
+{
     return sym;
 }
 

@@ -22,17 +22,17 @@ public:
     int load(std::vector<uint8_t> &programData);
     int main();
     std::chrono::nanoseconds getRunTime_ns();
-
-public:
-    CdbgExpr::SymbolDescriptor sym;
-    DebuggerDataHelper m_debuggerData;
     
     CdbgExpr::SymbolDescriptor& getSymbol(const std::string &name) override;
     uint8_t getByte(uint64_t address) override;
     void setByte(uint64_t address, uint8_t value) override;
     uint8_t CTypeSize(CdbgExpr::CType type) override;
 
+public:
+    DebuggerDataHelper m_debuggerData;
+
 private:
+    SymbolRecord& getSymbolRecord(const std::string &name);
     void start();
     void stop();
     bool isRunning();
@@ -42,6 +42,7 @@ private:
     CPU &m_cpu;
     GUI m_gui;
     FQ m_fq;
+    CdbgExpr::SymbolDescriptor sym;
 };
 
 #endif // _COMPUTER_H_
