@@ -30,7 +30,7 @@ public:
     CdbgExpr::SymbolDescriptor& getSymbol(const std::string &name) override;
     uint8_t getByte(uint64_t address) override;
     void setByte(uint64_t address, uint8_t value) override;
-    constexpr uint8_t CTypeSize(CdbgExpr::CType type) override;
+    uint8_t CTypeSize(CdbgExpr::CType type) override;
 
 private:
     void start();
