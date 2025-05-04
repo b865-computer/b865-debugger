@@ -188,7 +188,7 @@ void Emulator::setByte(uint64_t address, uint8_t value)
     return;
 }
 
-constexpr uint8_t Emulator::CTypeSize(CdbgExpr::CType type)
+uint8_t Emulator::CTypeSize(CdbgExpr::CType type)
 {
     switch (type)
     {
