@@ -50,15 +50,18 @@ void renderSideBar()
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 0.5f));
 
-    if (ImGui::ImageButton("explorer_button", explorerImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    if (ImGui::ImageButton("explorer_button", explorerImage_id,
+        ImVec2(sideBarImage_height, sideBarImage_width)))
     {
         gui->sideBarToolType = GUI::ToolType::TOOL_EXPLORER;
     }
-    if (ImGui::ImageButton("emulator_button", emulatorImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    if (ImGui::ImageButton("emulator_button", emulatorImage_id,
+        ImVec2(sideBarImage_height, sideBarImage_width)))
     {
         gui->sideBarToolType = GUI::ToolType::TOOL_EMUALTOR;
     }
-    if (ImGui::ImageButton("debugger_button", debuggerImage_id, ImVec2(sideBarImage_height, sideBarImage_width)))
+    if (ImGui::ImageButton("debugger_button", debuggerImage_id,
+        ImVec2(sideBarImage_height, sideBarImage_width)))
     {
         gui->sideBarToolType = GUI::ToolType::TOOL_DEBUGGER;
     }
@@ -71,7 +74,10 @@ std::string expr;
 
 void renderSideTool()
 {
-    if (ImGui::Begin("SideTool", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+    if (ImGui::Begin("SideTool", nullptr,
+        ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
     {
         if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
         {
@@ -82,7 +88,9 @@ void renderSideTool()
             ImGui::Text("Frequency: %lliHz", gui->m_frequencyHZ);
             if (showRealFrequency)
             {
-                ImGui::Text("Real freq. %.0fHz", ((double)gui->m_clock.getCycles() / ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
+                ImGui::Text("Real freq. %.0fHz",
+                    ((double)gui->m_clock.getCycles() /
+                    ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
             }
 
             if (ImGui::CollapsingHeader("Registers"))
@@ -202,29 +210,36 @@ void renderToolBar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if (ImGui::Begin("ToolBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
+    if (ImGui::Begin("ToolBar", nullptr,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
     {
-        if (ImGui::ImageButton("reset", resetImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
+        if (ImGui::ImageButton("reset", resetImage_id,
+            ImVec2(toolBarImage_height, toolBarImage_width)))
         {
             gui->m_cpu.startExec();
         }
         ImGui::SameLine();
         if (gui->m_clock.getStatus())
         {
-            if (ImGui::ImageButton("stop", stopImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
+            if (ImGui::ImageButton("stop", stopImage_id,
+                ImVec2(toolBarImage_height, toolBarImage_width)))
             {
                 isRunning = false;
             }
         }
         else
         {
-            if (ImGui::ImageButton("start", startImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
+            if (ImGui::ImageButton("start", startImage_id,
+                ImVec2(toolBarImage_height, toolBarImage_width)))
             {
                 isRunning = true;
             }
         }
         ImGui::SameLine();
-        if (ImGui::ImageButton("tick", tickImage_id, ImVec2(toolBarImage_height, toolBarImage_width)))
+        if (ImGui::ImageButton("tick", tickImage_id,
+            ImVec2(toolBarImage_height, toolBarImage_width)))
         {
             gui->m_clock.singleCycle();
         }
@@ -238,7 +253,10 @@ void renderFilesOpened()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if (ImGui::Begin("FilesOpened", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
+    if (ImGui::Begin("FilesOpened", nullptr,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
     {
         fileTabManager.renderFileTabs();
     }
@@ -252,7 +270,8 @@ void renderEditor()
     {
         // open Dialog Simple
         IGFD::FileDialogConfig config;
-        config.flags = ImGuiFileDialogFlags_DisableCreateDirectoryButton | ImGuiFileDialogFlags_NoDialog;
+        config.flags = 
+            ImGuiFileDialogFlags_DisableCreateDirectoryButton | ImGuiFileDialogFlags_NoDialog;
         config.path = ".";
         std::string filters;
         if (fileOpenInputType == projectFile)
@@ -266,7 +285,9 @@ void renderEditor()
         ImGuiFileDialog::Instance()->OpenDialog("0", "Choose File", filters.c_str(), config);
 
         // display
-        if (ImGuiFileDialog::Instance()->Display("0", ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+        if (ImGuiFileDialog::Instance()->Display("0",
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
         {
             if (ImGuiFileDialog::Instance()->IsOk())
             {
