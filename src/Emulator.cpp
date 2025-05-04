@@ -165,11 +165,14 @@ bool Emulator::isRunning()
 
 SymbolRecord& Emulator::getSymbolRecord(const std::string &name)
 {
-    for (auto& symbol : m_debuggerData.data.globalScope.symbols)
+    for (auto& pair : m_debuggerData.data.funcScope)
     {
-        if (symbol.name == name)
+        for (auto& symbol : pair.second.symbols)
         {
-            return symbol;
+            if (symbol.name == name)
+            {
+                return symbol;
+            }
         }
     }
     for (auto& pair : m_debuggerData.data.fileScope)
@@ -182,14 +185,11 @@ SymbolRecord& Emulator::getSymbolRecord(const std::string &name)
             }
         }
     }
-    for (auto& pair : m_debuggerData.data.funcScope)
+    for (auto& symbol : m_debuggerData.data.globalScope.symbols)
     {
-        for (auto& symbol : pair.second.symbols)
+        if (symbol.name == name)
         {
-            if (symbol.name == name)
-            {
-                return symbol;
-            }
+            return symbol;
         }
     }
 }
