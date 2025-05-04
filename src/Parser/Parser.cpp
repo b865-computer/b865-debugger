@@ -14,14 +14,14 @@ DebuggerData DbgDataParser::parse(std::filesystem::path filename, std::filesyste
         data.fail = true;
         return data;
     }
-    
+
     std::ostringstream buffer;
     buffer << file.rdbuf();
     std::istringstream iss(buffer.str());
     std::string linestr;
     while (std::getline(iss, linestr))
     {
-        if(linestr.size() < 3)
+        if (linestr.size() < 3)
         {
             continue;
         }
@@ -52,7 +52,7 @@ DebuggerData DbgDataParser::parse(std::filesystem::path filename, std::filesyste
         case 'L':
             data.addLinkerRecord(parseLinker(tokens, i));
             break;
-        
+
         default:
             printf("Unknown type: %c\n", type);
             break;
@@ -78,6 +78,7 @@ enum ParseState
 
 void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
 {
+    printf("Parsing map file: %s\n", filename.c_str());
     std::ifstream file(filename.string());
     if (!file.is_open())
     {
@@ -87,7 +88,7 @@ void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
 
     ParseState state = EndPage;
     std::string area;
-    
+
     std::ostringstream buffer;
     buffer << file.rdbuf();
     std::istringstream iss(buffer.str());
@@ -115,45 +116,92 @@ void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
             break;
 
         case Area:
-            if (linestr[0] == '-') {
+            if (linestr[0] == '-')
+            {
                 // skip separator line
                 break;
-            } else {
+            }
+            else
+            {
                 area = linestr.substr(0, linestr.find_first_of(" \t"));
                 state = AreaDef;
             }
             break;
 
         case AreaDef:
-            if (linestr[0] == '\x0C') {
+            if (linestr[0] == '\x0C')
+            {
                 state = Header;
                 break;
             }
 
-            if (area != "CODE") {
+            if (area != "CODE")
+            {
                 // Ignore other areas
                 break;
             }
 
+            if (linestr.find_first_not_of(" \t") == std::string::npos)
+            {
+                break;
+            }
+            linestr.erase(0, linestr.find_first_not_of(" \t"));
+
+            if (linestr[0] == 'V' || linestr[0] == '-')
+            {
+                break;
+            }
+
             // Attempt to extract symbols from columns in CODE section
-            for (int i = 0; i < 3; ++i) {
-                if (linestr.size() < 20 + i * 30) continue;
-        
-                std::string col = linestr.substr(i * 30, 30);
-                std::istringstream colstream(col);
+            while (linestr.size() > 3)
+            {
+                if (linestr.find_first_not_of(" \t") == std::string::npos)
+                {
+                    break;
+                }
+                linestr.erase(0, linestr.find_first_not_of(" \t"));
                 std::string addressStr, symbol;
-                colstream >> addressStr >> symbol;
-        
-                if (!symbol.empty() && symbol.find('$') == std::string::npos) {
+                if (linestr.find_first_of(" \t") == std::string::npos)
+                {
+                    break;
+                }
+                addressStr = linestr.substr(0, linestr.find_first_of(" \t"));
+                linestr.erase(0, linestr.find_first_of(" \t"));
+                if (linestr.find_first_not_of(" \t") == std::string::npos)
+                {
+                    break;
+                }
+                linestr.erase(0, linestr.find_first_not_of(" \t"));
+                if (linestr.find_first_of(" \t") == std::string::npos)
+                {
+                    break;
+                }
+                symbol = linestr.substr(0, linestr.find_first_of(" \t"));
+                linestr.erase(0, linestr.find_first_of(" \t"));
+                if (linestr.find_first_not_of(" \t") == std::string::npos)
+                {
+                    goto Process_Symbol;
+                }
+                linestr.erase(0, linestr.find_first_not_of(" \t"));
+                if (linestr.size() && linestr[0] == '|')
+                {
+                    linestr.erase(linestr.begin());
+                }
+Process_Symbol:
+                if (!symbol.empty() && symbol.find('$') == std::string::npos)
+                {
                     // Parse hex address
                     uint32_t address = 0;
-                    try {
+                    try
+                    {
                         address = std::stoul(addressStr, nullptr, 16);
-                    } catch (const std::exception &) {
-                        // Invalid address string, skip
-                        continue;
                     }
-        
+                    catch (const std::exception &)
+                    {
+                        // Invalid address string, skip
+                        break;
+                    }
+
                     // Add symbol
                     SymbolRecord symbolRec;
                     symbolRec.addressSpace = AddressSpace::CODE;
@@ -161,7 +209,7 @@ void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
                     symbolRec.typeChain.types.push_back(TypeChainRecord::Type{TypeChainRecord::Type::DCLType::FUNCTION, 0, symbol});
                     symbolRec.scope = Scope{Scope::Type::GLOBAL};
                     data.addSymbol(symbolRec);
-        
+
                     // Add linker record
                     LinkerRecord linkerRec;
                     linkerRec.type = LinkerRecord::Type::SYMBOL_ADDR;
@@ -180,7 +228,7 @@ void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
     }
 }
 
-void DbgDataParser::parseModule(std::vector<Token>& tokens, size_t& i, DebuggerData &data)
+void DbgDataParser::parseModule(std::vector<Token> &tokens, size_t &i, DebuggerData &data)
 {
     if (tokens.size() < 1)
     {
@@ -190,7 +238,7 @@ void DbgDataParser::parseModule(std::vector<Token>& tokens, size_t& i, DebuggerD
     (void)i;
 }
 
-FunctionRecord DbgDataParser::parseFunction(std::vector<Token>& tokens, size_t& i)
+FunctionRecord DbgDataParser::parseFunction(std::vector<Token> &tokens, size_t &i)
 {
     FunctionRecord func;
     if (tokens.size() < 14)
@@ -208,7 +256,7 @@ FunctionRecord DbgDataParser::parseFunction(std::vector<Token>& tokens, size_t& 
     return func;
 }
 
-SymbolRecord DbgDataParser::parseSymbol(std::vector<Token>& tokens, size_t& i)
+SymbolRecord DbgDataParser::parseSymbol(std::vector<Token> &tokens, size_t &i)
 {
     SymbolRecord symbol;
     if (tokens.size() < 12)
@@ -239,7 +287,7 @@ SymbolRecord DbgDataParser::parseSymbol(std::vector<Token>& tokens, size_t& i)
     return symbol;
 }
 
-TypeRecord DbgDataParser::parseType(std::vector<Token>& tokens, size_t& i)
+TypeRecord DbgDataParser::parseType(std::vector<Token> &tokens, size_t &i)
 {
     TypeRecord type;
     if (tokens.size() < 4)
@@ -279,12 +327,12 @@ TypeRecord DbgDataParser::parseType(std::vector<Token>& tokens, size_t& i)
     return type;
 }
 
-LinkerRecord DbgDataParser::parseLinker(std::vector<Token>& tokens, size_t& i)
+LinkerRecord DbgDataParser::parseLinker(std::vector<Token> &tokens, size_t &i)
 {
     LinkerRecord record;
     record.scope.type = Scope::Type::GLOBAL;
     {
-        Token& type = tokens[i];
+        Token &type = tokens[i];
         record.type = LinkerRecord::Type::SYMBOL_ADDR;
         if (type.value[0] == 'X')
         {
@@ -325,7 +373,7 @@ LinkerRecord DbgDataParser::parseLinker(std::vector<Token>& tokens, size_t& i)
     return record;
 }
 
-TypeChainRecord DbgDataParser::parseTypeChain(std::vector<Token>& tokens, size_t& i)
+TypeChainRecord DbgDataParser::parseTypeChain(std::vector<Token> &tokens, size_t &i)
 {
     TypeChainRecord typeChain;
     if (tokens.size() < 2)
@@ -347,7 +395,7 @@ TypeChainRecord DbgDataParser::parseTypeChain(std::vector<Token>& tokens, size_t
     }
     while (1)
     {
-        Token& token = tokens[i];
+        Token &token = tokens[i];
         if (token.value.size() < 2)
         {
             typeChain.sign = (token.value == "S");
@@ -395,7 +443,7 @@ void DbgDataParser::parseScopeNameLevelBlock(std::vector<Token> &tokens, size_t 
 }
 
 REG DbgDataParser::getReg(Token token)
-{ 
+{
     std::string reg = token.value;
     if (reg == "a")
     {
@@ -516,17 +564,16 @@ TypeChainRecord::Type::DCLType DbgDataParser::getDCLType(Token token)
 std::vector<DbgDataParser::Token> DbgDataParser::tokenize(const std::string &line)
 {
     std::vector<Token> tokens;
-    
 
     for (size_t i = 0; i < line.size(); i++)
     {
         char c = line[i];
 
-        if (c == '(' || c == '['|| c == '{')
+        if (c == '(' || c == '[' || c == '{')
         {
             tokens.push_back(Token{Token::Type::LeftBracket, std::string(1, c)});
         }
-        else if (c == ')' || c == ']' || c == '}' )
+        else if (c == ')' || c == ']' || c == '}')
         {
             tokens.push_back(Token{Token::Type::RightBracket, std::string(1, c)});
         }
@@ -538,8 +585,8 @@ std::vector<DbgDataParser::Token> DbgDataParser::tokenize(const std::string &lin
         {
             size_t start = i;
             while (i < line.size() && line[i] != '(' && line[i] != '[' && line[i] != '{' &&
-                line[i] != ')' && line[i] != ']' && line[i] != '}' && line[i] != ':' &&
-                line[i] != ',' && line[i] != '$')
+                   line[i] != ')' && line[i] != ']' && line[i] != '}' && line[i] != ':' &&
+                   line[i] != ',' && line[i] != '$')
             {
                 i++;
             }
@@ -550,6 +597,6 @@ std::vector<DbgDataParser::Token> DbgDataParser::tokenize(const std::string &lin
             }
         }
     }
-    tokens.push_back(Token{Token::Type::LineEnd,"\n"});
+    tokens.push_back(Token{Token::Type::LineEnd, "\n"});
     return tokens;
 }
