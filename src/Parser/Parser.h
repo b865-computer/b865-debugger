@@ -30,9 +30,11 @@ public:
     };
     
 public:
-    DebuggerData parse(std::filesystem::path filename);
+    DebuggerData parse(std::filesystem::path filename, std::filesystem::path mapFile = "");
 
 private:
+    void parseMap(DebuggerData& data, std::filesystem::path filename);
+
     // record parsers
     void parseModule(std::vector<Token>& tokens, size_t& i, DebuggerData& data);
     FunctionRecord parseFunction(std::vector<Token>& tokens, size_t& i);

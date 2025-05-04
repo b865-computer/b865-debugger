@@ -29,11 +29,15 @@ int DebuggerDataHelper::init(std::string configFileName)
 
     debugSymbolFileName = path + "/" + debugSymbolFileName;
 
+    std::string mapFileName(config["map"].asString());
+
+    mapFileName = path + "/" + mapFileName;
+
     binfile = config["bin"].asString();
 
     DbgDataParser parser;
 
-    data = parser.parse(debugSymbolFileName);
+    data = parser.parse(debugSymbolFileName, mapFileName);
 
     if (data.fail)
     {
