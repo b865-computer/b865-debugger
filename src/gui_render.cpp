@@ -138,11 +138,42 @@ void renderSideTool()
 
             if (ImGui::CollapsingHeader("Symbols"))
             {
-                const auto& symbols = gui->m_emulator.m_debuggerData.data.getSymbolAddrs();
-                for (const auto& symbol : symbols)
+                for (const auto& symbol : 
+                    gui->m_emulator.m_debuggerData.data.globalScope.linkerRecords)
                 {
-                    ImGui::Text(" %s: %i",
-                                symbol.name, symbol.addr);
+                    if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
+                    {
+                        continue;
+                    }
+                    ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                }
+                for (const auto& pair : gui->m_emulator.m_debuggerData.data.fileScope)
+                {
+                    if (ImGui::CollapsingHeader(("File: " + pair.first).c_str()))
+                    {
+                        for (const auto& symbol : pair.second.linkerRecords)
+                        {
+                            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
+                            {
+                                continue;
+                            }
+                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                        }
+                    }
+                }
+                for (const auto& pair : gui->m_emulator.m_debuggerData.data.funcScope)
+                {
+                    if (ImGui::CollapsingHeader(("Func" + pair.first).c_str()))
+                    {
+                        for (const auto& symbol : pair.second.linkerRecords)
+                        {
+                            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
+                            {
+                                continue;
+                            }
+                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                        }
+                    }
                 }
             }
         }
