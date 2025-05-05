@@ -32,8 +32,6 @@ public:
     DebuggerDataHelper m_debuggerData;
 
 private:
-    SymbolRecord getSymbolRecord(const std::string &name);
-    LinkerRecord getSymbolAddr(const std::string &name);
     void start();
     void stop();
     bool isRunning();

@@ -162,94 +162,18 @@ bool Emulator::isRunning()
     return false;
 }
 
-SymbolRecord Emulator::getSymbolRecord(const std::string &name)
-{
-    for (auto& pair : m_debuggerData.data.funcScope)
-    {
-        for (auto& symbol : pair.second.symbols)
-        {
-            if (symbol.name == name)
-            {
-                return symbol;
-            }
-        }
-    }
-    for (auto& pair : m_debuggerData.data.fileScope)
-    {
-        for (auto& symbol : pair.second.symbols)
-        {
-            if (symbol.name == name)
-            {
-                return symbol;
-            }
-        }
-    }
-    for (auto& symbol : m_debuggerData.data.globalScope.symbols)
-    {
-        if (symbol.name == name)
-        {
-            return symbol;
-        }
-    }
-    return SymbolRecord();
-}
-
-LinkerRecord Emulator::getSymbolAddr(const std::string &name)
-{
-    for (auto& pair : m_debuggerData.data.funcScope)
-    {
-        for (auto& symbol : pair.second.linkerRecords)
-        {
-            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-            {
-                continue;
-            }
-            if (symbol.name == name)
-            {
-                return symbol;
-            }
-        }
-    }
-    for (auto& pair : m_debuggerData.data.fileScope)
-    {
-        for (auto& symbol : pair.second.linkerRecords)
-        {
-            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-            {
-                continue;
-            }
-            if (symbol.name == name)
-            {
-                return symbol;
-            }
-        }
-    }
-    for (auto& symbol : m_debuggerData.data.globalScope.linkerRecords)
-    {
-        if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-        {
-            continue;
-        }
-        if (symbol.name == name)
-        {
-            return symbol;
-        }
-    }
-    return LinkerRecord();
-}
-
 CdbgExpr::SymbolDescriptor Emulator::getSymbol(const std::string &name)
 {
-    SymbolRecord symbolRec = getSymbolRecord(name);
-    LinkerRecord symbolAddr = getSymbolAddr(name);
-    CdbgExpr::SymbolDescriptor symbol;
-    symbol.cType.push_back(CdbgExpr::CType::POINTER); // keep it simple for now
-    symbol.cType.push_back(CdbgExpr::CType::VOID);
-    symbol.hasAddress = true;
-    symbol.setValue((uint64_t)symbolAddr.addr);
-    symbol.isSigned = symbolRec.typeChain.sign;
-    symbol.size = symbolRec.typeChain.size;
-    return symbol;
+    auto it = std::find_if(m_debuggerData.globalScope.begin(), m_debuggerData.globalScope.end(), 
+        [name](SymbolVector::value_type symbol)
+        {
+            return symbol.name == name;
+        });
+    if (it != m_debuggerData.globalScope.end())
+    {
+        return *it;
+    }
+    return CdbgExpr::SymbolDescriptor();
 }
 
 uint8_t Emulator::getByte(uint64_t address)

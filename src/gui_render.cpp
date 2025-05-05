@@ -147,39 +147,27 @@ void renderSideTool()
             if (ImGui::CollapsingHeader("Symbols"))
             {
                 for (const auto& symbol : 
-                    gui->m_emulator.m_debuggerData.data.globalScope.linkerRecords)
+                    gui->m_emulator.m_debuggerData.globalScope)
                 {
-                    if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-                    {
-                        continue;
-                    }
-                    ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                    ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.toUnsigned());
                 }
-                for (const auto& pair : gui->m_emulator.m_debuggerData.data.fileScope)
+                for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
                 {
                     if (ImGui::CollapsingHeader(("File: " + pair.first).c_str()))
                     {
-                        for (const auto& symbol : pair.second.linkerRecords)
+                        for (const auto& symbol : pair.second)
                         {
-                            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-                            {
-                                continue;
-                            }
-                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.toUnsigned());
                         }
                     }
                 }
-                for (const auto& pair : gui->m_emulator.m_debuggerData.data.funcScope)
+                for (const auto& pair : gui->m_emulator.m_debuggerData.funcScope)
                 {
                     if (ImGui::CollapsingHeader(("Func" + pair.first).c_str()))
                     {
-                        for (const auto& symbol : pair.second.linkerRecords)
+                        for (const auto& symbol : pair.second)
                         {
-                            if (symbol.type != LinkerRecord::Type::SYMBOL_ADDR)
-                            {
-                                continue;
-                            }
-                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.addr);
+                            ImGui::Text(" %s: 0x%04x", symbol.second.name.c_str(), symbol.second.toUnsigned());
                         }
                     }
                 }
