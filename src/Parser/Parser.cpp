@@ -433,11 +433,12 @@ TypeChainRecord DbgDataParser::parseTypeChain(std::vector<Token> &tokens, size_t
 void DbgDataParser::parseScopeNameLevelBlock(std::vector<Token> &tokens, size_t &i, ScopeNameLevelBlock &data)
 {
     data.scope.type = (Scope::Type)tokens[i++].value[0];
+    data.scope.name.clear();
     if (data.scope.type != Scope::Type::GLOBAL && data.scope.type != Scope::Type::STRUCT)
     {
         data.scope.name = tokens[i - 1].value.substr(1);
     }
-    data.name = tokens[i++].value;
+    data.name += tokens[i++].value;
     data.level = std::stoi(tokens[i++].value);
     data.block = std::stoi(tokens[i++].value);
 }
