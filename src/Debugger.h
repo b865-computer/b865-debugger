@@ -3,23 +3,45 @@
 #define _DEBUGGER_H_
 
 #include "Parser/Parser.h"
+#include <CdbgExpr.h>
 #include "Common.h"
 
 typedef LinkerRecord CodePosition; // name = fileName
 typedef CodePosition breakpoint;
 
+class FuncScopeData
+{
+public:
+    size_t level;
+    size_t block;
+};
+
+typedef std::vector<CdbgExpr::SymbolDescriptor> SymbolVector;
+typedef std::vector<std::pair<FuncScopeData, CdbgExpr::SymbolDescriptor>> FuncScopedSymbolVector;
+typedef std::unordered_map<std::string, SymbolVector> FileScopedSymbols;
+typedef std::unordered_map<std::string, FuncScopedSymbolVector> FuncScopedSymbols;
+
 class DebuggerDataHelper
 {
 public:
     int init(std::string configFileName);
-    std::string getBinFile();
 
+    std::string getBinFile();
     CodePosition getPosition(uint64_t addr);
     
+private:
+    void createSymbolDescriptors();
+    LinkerRecord getLinkerRecordForSymbol(const SymbolRecord& symbolRec);
+    std::vector<CdbgExpr::CType> getCTypeFromTypeChain(const TypeChainRecord& typeChain);
+
+
 public:
-    DebuggerData data;
+    FileScopedSymbols fileScope;
+    FuncScopedSymbols funcScope;
+    SymbolVector globalScope;
 
 private:
+    DebuggerData data;
     std::string binfile;
 };
 

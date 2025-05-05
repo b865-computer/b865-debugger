@@ -2,6 +2,7 @@
 #include <fstream>
 #include <json/json.h>
 #include "Utils.h"
+#include <algorithm>
 
 /// @brief initializes the DebuggerDataHelper class based on the given json file
 /// @param configFileName the configuration .json file
@@ -44,6 +45,8 @@ int DebuggerDataHelper::init(std::string configFileName)
         return 1;
     }
     
+    createSymbolDescriptors();
+
     return 0;
 }
 
@@ -61,4 +64,60 @@ CodePosition DebuggerDataHelper::getPosition(uint64_t addr)
     pos.addr = addr;
     pos.line = line.line;
     return pos;
+}
+
+void DebuggerDataHelper::createSymbolDescriptors()
+{
+    for (auto& symbolRec : data.globalScope.symbols)
+    {
+        CdbgExpr::SymbolDescriptor symbol;
+        auto linkerRec = getLinkerRecordForSymbol(symbolRec);
+        uint64_t addr = linkerRec.addr;
+        symbol.hasAddress = false;
+        symbol.setValue(addr);
+        symbol.hasAddress = true;
+        symbol.name = symbolRec.name;
+        symbol.size = symbolRec.typeChain.size;
+        symbol.cType = getCTypeFromTypeChain(symbolRec.typeChain);
+        symbol.isSigned = symbolRec.typeChain.sign;
+    }
+}
+
+LinkerRecord DebuggerDataHelper::getLinkerRecordForSymbol(const SymbolRecord &symbolRec)
+{
+    // TODO: implement file and function scopes.
+    auto it = std::find_if(data.globalScope.linkerRecords.begin(), 
+        data.globalScope.linkerRecords.end(), 
+        [symbolRec](LinkerRecord& linkerRec){
+            if (linkerRec.type != LinkerRecord::Type::SYMBOL_ADDR)
+            {
+                return false;
+            }
+            return symbolRec.name == linkerRec.name;
+        });
+    if (it != data.globalScope.linkerRecords.end())
+    {
+        return *it;
+    }
+    return LinkerRecord();
+}
+
+std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const TypeChainRecord &typeChain)
+{
+    std::vector<CdbgExpr::CType> cTypes;
+    for (const auto& type : typeChain.types)
+    {
+        CdbgExpr::CType cType;
+        switch (type.DCLtype)
+        {
+        case TypeChainRecord::Type::DCLType::VOID:
+            cType = CdbgExpr::CType::VOID;
+            break;
+        
+        default:
+            break;
+        }
+        cTypes.push_back(cType);
+    }
+    return cTypes;
 }
