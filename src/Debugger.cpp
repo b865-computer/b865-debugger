@@ -105,16 +105,73 @@ LinkerRecord DebuggerDataHelper::getLinkerRecordForSymbol(const SymbolRecord &sy
 std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const TypeChainRecord &typeChain)
 {
     std::vector<CdbgExpr::CType> cTypes;
-    for (const auto& type : typeChain.types)
+    for (size_t i = 0; i < typeChain.types.size(); i++)
     {
         CdbgExpr::CType cType;
+        auto& type = typeChain.types[i];
         switch (type.DCLtype)
         {
+        case TypeChainRecord::Type::DCLType::ARRAY:
+            cType = CdbgExpr::CType::ARRAY;
+            break;
+        case TypeChainRecord::Type::DCLType::BITFIELD:
+            cType = CdbgExpr::CType::BITFIELD;
+            cType.offset = type.num.bitField.offset;
+            cType.size = type.num.bitField.size;
+            break;
+        case TypeChainRecord::Type::DCLType::CHAR:
+            cType = CdbgExpr::CType::CHAR;
+            break;
+        case TypeChainRecord::Type::DCLType::CODE_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::EXT_RAM_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::FLOAT:
+            cType = CdbgExpr::CType::FLOAT;
+            break;
+        case TypeChainRecord::Type::DCLType::FUNCTION:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::GEN_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::INT:
+            cType = CdbgExpr::CType::INT;
+            break;
+        case TypeChainRecord::Type::DCLType::INT_RAM_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::LONG:
+            cType = CdbgExpr::CType::LONG;
+            if (typeChain.types.size() > i + 1 && typeChain.types[i + 1].DCLtype == TypeChainRecord::Type::DCLType::LONG)
+            {
+                i++;
+                cType = CdbgExpr::CType::LONGLONG;
+            }
+            break;
+        case TypeChainRecord::Type::DCLType::PAGED_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
+        case TypeChainRecord::Type::DCLType::SBIT:
+            cType = CdbgExpr::CType::VOID;
+            break;
+        case TypeChainRecord::Type::DCLType::SHORT:
+            cType = CdbgExpr::CType::SHORT;
+            break;
+        case TypeChainRecord::Type::DCLType::STRUCT:
+            cType = CdbgExpr::CType::STRUCT;
+            break;
+        case TypeChainRecord::Type::DCLType::UPPER128_POINTER:
+            cType = CdbgExpr::CType::POINTER;
+            break;
         case TypeChainRecord::Type::DCLType::VOID:
             cType = CdbgExpr::CType::VOID;
             break;
         
         default:
+            cType = CdbgExpr::CType::UNKNOWN;
             break;
         }
         cTypes.push_back(cType);
