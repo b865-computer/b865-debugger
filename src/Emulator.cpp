@@ -196,26 +196,26 @@ void Emulator::setByte(uint64_t address, uint8_t value)
 
 uint8_t Emulator::CTypeSize(CdbgExpr::CType type)
 {
-    switch (type)
+    switch (type.type)
     {
-    case CdbgExpr::CType::DOUBLE:
-    case CdbgExpr::CType::LONGLONG:
+    case CdbgExpr::CType::Type::DOUBLE:
+    case CdbgExpr::CType::Type::LONGLONG:
         return 8;
 
-    case CdbgExpr::CType::LONG:
-    case CdbgExpr::CType::FLOAT:
+    case CdbgExpr::CType::Type::LONG:
+    case CdbgExpr::CType::Type::FLOAT:
         return 4;
     
-    case CdbgExpr::CType::INT:
+    case CdbgExpr::CType::Type::INT:
         return 2;
     
-    case CdbgExpr::CType::SHORT:
-    case CdbgExpr::CType::POINTER:
+    case CdbgExpr::CType::Type::SHORT:
+    case CdbgExpr::CType::Type::POINTER:
         return 2;
     
-    case CdbgExpr::CType::CHAR:
-    case CdbgExpr::CType::BOOL:
-    case CdbgExpr::CType::VOID:
+    case CdbgExpr::CType::Type::CHAR:
+    case CdbgExpr::CType::Type::BOOL:
+    case CdbgExpr::CType::Type::VOID:
         return 1;
     
     default:
