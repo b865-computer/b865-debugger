@@ -123,6 +123,7 @@ public:
     void startExec();
     void stopPheripherials();
     const CPU_Status &getStatus();
+    void setReg(uint8_t regNum, uint8_t val);
 
 public:
     MEMORY mem;

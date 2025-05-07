@@ -125,6 +125,15 @@ const CPU_Status &CPU::getStatus()
     return *this;
 }
 
+void CPU::setReg(uint8_t regNum, uint8_t val)
+{
+    if (regNum >= 8)
+    {
+        return;
+    }
+    registers[regNum] = val;
+}
+
 void CPU::cycle()
 {
     if (signals.HLT)

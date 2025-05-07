@@ -230,11 +230,20 @@ uint64_t Emulator::getStackPointer()
     return m_cpu.getStatus().registers[REGISTERS_BANK::SP_IDX];
 }
 
-uint64_t Emulator::getRegContent(uint8_t regNum)
+uint8_t Emulator::getRegContent(uint8_t regNum)
 {
     if (regNum >= 8)
     {
         return 0;
     }
     return m_cpu.getStatus().registers[regNum];
+}
+
+void Emulator::setRegContent(uint8_t regNum, uint8_t val)
+{
+    if (regNum >= 8)
+    {
+        return;
+    }
+    m_cpu.setReg(regNum, val);
 }
