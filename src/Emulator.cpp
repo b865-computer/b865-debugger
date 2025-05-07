@@ -20,6 +20,7 @@ Emulator::Emulator()
 
 int Emulator::init()
 {
+    CdbgExpr::SymbolDescriptor::data = this;
     m_cpu.init();
     m_clock.init();
     return m_gui.init();
