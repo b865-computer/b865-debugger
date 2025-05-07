@@ -75,12 +75,20 @@ void DebuggerDataHelper::createSymbolDescriptors()
         uint64_t addr = linkerRec.addr;
         symbol.hasAddress = false;
         symbol.setValue(addr);
-        symbol.hasAddress = true;
         symbol.name = symbolRec.name;
         symbol.size = symbolRec.typeChain.size;
         symbol.cType = getCTypeFromTypeChain(symbolRec.typeChain);
+        symbol.hasAddress = true;
+        for (auto& type : symbolRec.typeChain.types)
+        {
+            if (type.DCLtype == TypeChainRecord::Type::DCLType::FUNCTION)
+            {
+                symbol.hasAddress = false;
+            }
+        }
         symbol.isSigned = symbolRec.typeChain.sign;
         printf("Symbol: %s = 0x%04lX\n", symbol.name.c_str(), symbol.toUnsigned());
+        globalScope.push_back(symbol);
     }
 }
 

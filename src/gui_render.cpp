@@ -144,7 +144,7 @@ void renderSideTool()
                 }
             }
 
-            if (ImGui::CollapsingHeader("Symbols"))
+            if (ImGui::CollapsingHeader("Symbols, variables"))
             {
                 for (const auto& symbol : 
                     gui->m_emulator.m_debuggerData.globalScope)
