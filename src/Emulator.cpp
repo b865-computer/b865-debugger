@@ -13,7 +13,7 @@ void cycle_ins_level(void)
 }
 
 Emulator::Emulator()
-    : m_fq(1000000), m_clock(cycle), m_cpu(cpu), m_debuggerData(), m_gui(*this, cpu.getStatus(), m_clock, cpu)
+    : m_debuggerData(), m_clock(cycle), m_cpu(cpu), m_gui(*this, cpu.getStatus(), m_clock, cpu), m_fq(1000000)
 {
     m_clock.setHZ(m_fq.HZ);
 }
@@ -66,7 +66,7 @@ int Emulator::main()
 {
     std::string outputLines;
     m_gui.ConsoleText = &outputLines;
-    M_PROCESS_OUT buildProcessOut;
+    M_PROCESS_OUT buildProcessOut = nullptr;
     M_PROCESS buildProcess;
     bool buildProcessRunning = false;
     bool ins_level = false;

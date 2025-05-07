@@ -2,7 +2,7 @@
 #include "gui.h"
 
 GUI::GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu)
-    : m_emulator(emulator), m_CPUStatus(status), m_clock(clock), m_cpu(cpu)
+    : m_emulator(emulator), m_CPUStatus(status), m_cpu(cpu), m_clock(clock)
 {
     m_pheripherials = nullptr;
     m_pheriphCount = 0;
@@ -41,6 +41,8 @@ FileTabManager fileTabManager;
 
 FileTab::FileWarningCallbackReturnType fileCallBack(const std::string &str, FileTab::FileWarningCallbackType type)
 {
+    // TODO: implement a real callback
+    (void)type;
     fprintf(stderr, "FileTab::FileWarningCallback: %s\n", str.c_str());
     return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO;
 }
@@ -104,7 +106,7 @@ Window_Attrib window_console("Console", 0, 0, 0, -300, true, 2);
 
 void error_callback(int error, const char *description)
 {
-    fprintf(stderr, "Error: %s\n", description);
+    fprintf(stderr, "Error %i: %s\n", error, description);
 }
 
 // Simple helper function to load an image into a OpenGL texture with common settings
@@ -146,7 +148,7 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
         return false;
     fseek(f, 0, SEEK_END);
     uint64_t file_size = (uint64_t)ftell(f);
-    if (file_size == -1)
+    if (file_size == (uint64_t)-1)
         return false;
     fseek(f, 0, SEEK_SET);
     void *file_data = IM_ALLOC(file_size);
@@ -164,6 +166,8 @@ bool GUI::LoadTextureFromFile(const char *file_name, GLuint *out_texture, int *o
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    (void)scancode;
+    (void)mods;
     bool control = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL));
     if (key == GLFW_KEY_O && control && action == GLFW_PRESS)
     {
@@ -219,12 +223,12 @@ void GUI::terminate()
 
 void printWindowLayouts(Window_Attrib *window, int indent = 0)
 {
-    // fprintf(stdout, "%*s%s: posX: %d, posY: %d, width: %d, height: %d\n", indent, "", window->name.c_str(), window->x + window->offsetFromOriginX, window->y + window->offsetFromOriginY, window->width, window->height);
-    // indent++;
-    // for (auto child : window->children)
-    // {
-    //     printWindowLayouts(child, indent);
-    // }
+    fprintf(stdout, "%*s%s: posX: %d, posY: %d, width: %d, height: %d\n", indent, "", window->name.c_str(), window->x + window->offsetFromOriginX, window->y + window->offsetFromOriginY, window->width, window->height);
+    indent++;
+    for (auto child : window->children)
+    {
+        printWindowLayouts(child, indent);
+    }
 }
 
 int GUI::init()
@@ -301,7 +305,7 @@ int GUI::init()
     glfwGetFramebufferSize(window, &display_w, &display_h);
     mainWindow->adjustLayout(display_w, display_h);
 
-    printWindowLayouts(mainWindow);
+    // printWindowLayouts(mainWindow);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

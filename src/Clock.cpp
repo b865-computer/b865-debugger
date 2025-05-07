@@ -26,7 +26,7 @@ void FQ::set(uint64_t _HZ)
 }
 
 Clock::Clock(void (*_cycle_func)(void))
-    : m_fq(1), m_targetFq(1), m_cycle_func(_cycle_func)
+    : m_cycle_func(_cycle_func), m_fq(1), m_targetFq(1)
 {
 }
 

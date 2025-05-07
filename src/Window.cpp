@@ -1,7 +1,7 @@
 #include "Window.h"
 
 Window_Attrib::Window_Attrib(std::string _name, int _x, int _y, int _maxWidth, int _maxHeight, bool _visible, int _resizePriority, bool _disableImGuiBegin)
-    : name(_name), x(_x), y(_y), maxWidth(_maxWidth), maxHeight(_maxHeight), visible(_visible), resizePriority(_resizePriority), disableImGuiBegin(_disableImGuiBegin) {}
+    : x(_x), y(_y), maxWidth(_maxWidth), maxHeight(_maxHeight), visible(_visible), resizePriority(_resizePriority), disableImGuiBegin(_disableImGuiBegin), name(_name){}
 
 Window_Attrib::Window_Attrib() {}
 
@@ -106,6 +106,7 @@ void Window_Attrib::adjustLayout(int displayWidth, int displayHeight)
 
 void Window_Attrib::setLayout(LayoutType _layout, int displayWidth, int displayHeight)
 {
+    (void)_layout; // TODO: fix this
     if (layout == LayoutType::Horizontal)
     {
         int offsetX = 0;
@@ -141,8 +142,6 @@ void Window_Attrib::render()
         int Xpos = x + offsetFromOriginX;
         int Ypos = y + offsetFromOriginY;
         ImGui::SetNextWindowPos(ImVec2(Xpos, Ypos), ImGuiCond_Always);
-
-        ImGuiWindowFlags_ flags;
 
         bool render = true;
 

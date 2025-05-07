@@ -21,7 +21,7 @@ public:
     {
         start = _start;
         len = _len;
-        type = type;
+        type = _type;
     }
     inline MEMMAP(Pheriph *_p, uint16_t _start, uint32_t _len)
         : p(*_p)

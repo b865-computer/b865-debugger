@@ -85,7 +85,7 @@ void renderSideTool()
         }
         else if (gui->sideBarToolType == GUI::ToolType::TOOL_EMUALTOR)
         {
-            ImGui::Text("Frequency: %lliHz", gui->m_frequencyHZ);
+            ImGui::Text("Frequency: %liHz", gui->m_frequencyHZ);
             if (showRealFrequency)
             {
                 ImGui::Text("Real freq. %.0fHz",
@@ -135,7 +135,7 @@ void renderSideTool()
             {
                 if (ImGui::CollapsingHeader(gui->m_pheripherials[0]->m_name.c_str()))
                 {
-                    for (int i = 0; i < gui->m_pheripherials[0]->m_regNames.size(); i++)
+                    for (size_t i = 0; i < gui->m_pheripherials[0]->m_regNames.size(); i++)
                     {
                         ImGui::Text(" %s: %i",
                                     gui->m_pheripherials[0]->m_regNames[i].c_str(),
@@ -149,7 +149,7 @@ void renderSideTool()
                 for (const auto& symbol : 
                     gui->m_emulator.m_debuggerData.globalScope)
                 {
-                    ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.toUnsigned());
+                    ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.toUnsigned());
                 }
                 for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
                 {
@@ -157,7 +157,7 @@ void renderSideTool()
                     {
                         for (const auto& symbol : pair.second)
                         {
-                            ImGui::Text(" %s: 0x%04x", symbol.name.c_str(), symbol.toUnsigned());
+                            ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.toUnsigned());
                         }
                     }
                 }
@@ -167,7 +167,7 @@ void renderSideTool()
                     {
                         for (const auto& symbol : pair.second)
                         {
-                            ImGui::Text(" %s: 0x%04x", symbol.second.name.c_str(), symbol.second.toUnsigned());
+                            ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.toUnsigned());
                         }
                     }
                 }

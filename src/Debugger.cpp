@@ -80,7 +80,7 @@ void DebuggerDataHelper::createSymbolDescriptors()
         symbol.size = symbolRec.typeChain.size;
         symbol.cType = getCTypeFromTypeChain(symbolRec.typeChain);
         symbol.isSigned = symbolRec.typeChain.sign;
-        printf("Symbol: %s = 0x%04X\n", symbol.name.c_str(), symbol.toUnsigned());
+        printf("Symbol: %s = 0x%04lX\n", symbol.name.c_str(), symbol.toUnsigned());
     }
 }
 

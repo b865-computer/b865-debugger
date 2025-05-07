@@ -76,6 +76,9 @@ public:
     };
     Type type = Type::UNKNOWN;
     std::string name;
+    Scope() {}
+    Scope(Type _type) : type(_type) {}
+    Scope(Type _type, const std::string _name) : type(_type), name(_name) {}
 };
 
 enum class AddressSpace

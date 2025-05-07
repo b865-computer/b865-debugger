@@ -68,7 +68,7 @@ int CPU::loadProgramFromFile(std::string filename)
                 fprintf(stderr, "Error: file %s is too large\n", filename.c_str());
                 break;
             }
-            for(int j = 0; j < i->second.size(); j++)
+            for(size_t j = 0; j < i->second.size(); j++)
             {
                 if(i->first + j < len)
                 {
@@ -292,7 +292,7 @@ uint8_t CPU::calcALUOut()
     uint16_t val = 0;
     if (signals.ROR)
     {
-        uint8_t val = (A >> 1) + (carry << 7);
+        val = (A >> 1) + (carry << 7);
         carry = A & 1;
     }
     else
