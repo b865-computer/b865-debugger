@@ -86,6 +86,18 @@ void DebuggerDataHelper::createSymbolDescriptors()
                 symbol.hasAddress = false;
             }
         }
+        if(symbolRec.onStack)
+        {
+            symbol.stack = true;
+            symbol.stackOffs = symbolRec.stack_offs;
+        }
+        if(symbolRec.addressSpace == AddressSpace::REGISTER_SPACE && symbolRec.registers.size())
+        {
+            for (auto reg : symbolRec.registers)
+            {
+                symbol.regs.push_back((uint8_t)reg);
+            }
+        }
         symbol.isSigned = symbolRec.typeChain.sign;
         printf("Symbol: %s = 0x%04lX\n", symbol.name.c_str(), symbol.toUnsigned());
         globalScope.push_back(symbol);

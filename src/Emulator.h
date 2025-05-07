@@ -27,6 +27,8 @@ public:
     uint8_t getByte(uint64_t address) override;
     void setByte(uint64_t address, uint8_t value) override;
     uint8_t CTypeSize(CdbgExpr::CType type) override;
+    uint64_t getStackPointer() override;
+    uint64_t getRegContent(uint8_t regNum) override;
 
 public:
     DebuggerDataHelper m_debuggerData;
