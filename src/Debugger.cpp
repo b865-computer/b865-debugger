@@ -80,6 +80,7 @@ void DebuggerDataHelper::createSymbolDescriptors()
         symbol.size = symbolRec.typeChain.size;
         symbol.cType = getCTypeFromTypeChain(symbolRec.typeChain);
         symbol.isSigned = symbolRec.typeChain.sign;
+        printf("Symbol: %s = 0x%04X\n", symbol.name.c_str(), symbol.toUnsigned());
     }
 }
 
@@ -112,66 +113,66 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
         switch (type.DCLtype)
         {
         case TypeChainRecord::Type::DCLType::ARRAY:
-            cType = CdbgExpr::CType::ARRAY;
+            cType = CdbgExpr::CType::Type::ARRAY;
             break;
         case TypeChainRecord::Type::DCLType::BITFIELD:
-            cType = CdbgExpr::CType::BITFIELD;
+            cType = CdbgExpr::CType::Type::BITFIELD;
             cType.offset = type.num.bitField.offset;
             cType.size = type.num.bitField.size;
             break;
         case TypeChainRecord::Type::DCLType::CHAR:
-            cType = CdbgExpr::CType::CHAR;
+            cType = CdbgExpr::CType::Type::CHAR;
             break;
         case TypeChainRecord::Type::DCLType::CODE_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::EXT_RAM_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::FLOAT:
-            cType = CdbgExpr::CType::FLOAT;
+            cType = CdbgExpr::CType::Type::FLOAT;
             break;
         case TypeChainRecord::Type::DCLType::FUNCTION:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::GEN_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::INT:
-            cType = CdbgExpr::CType::INT;
+            cType = CdbgExpr::CType::Type::INT;
             break;
         case TypeChainRecord::Type::DCLType::INT_RAM_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::LONG:
-            cType = CdbgExpr::CType::LONG;
+            cType = CdbgExpr::CType::Type::LONG;
             if (typeChain.types.size() > i + 1 && typeChain.types[i + 1].DCLtype == TypeChainRecord::Type::DCLType::LONG)
             {
                 i++;
-                cType = CdbgExpr::CType::LONGLONG;
+                cType = CdbgExpr::CType::Type::LONGLONG;
             }
             break;
         case TypeChainRecord::Type::DCLType::PAGED_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::SBIT:
-            cType = CdbgExpr::CType::VOID;
+            cType = CdbgExpr::CType::Type::VOID;
             break;
         case TypeChainRecord::Type::DCLType::SHORT:
-            cType = CdbgExpr::CType::SHORT;
+            cType = CdbgExpr::CType::Type::SHORT;
             break;
         case TypeChainRecord::Type::DCLType::STRUCT:
-            cType = CdbgExpr::CType::STRUCT;
+            cType = CdbgExpr::CType::Type::STRUCT;
             break;
         case TypeChainRecord::Type::DCLType::UPPER128_POINTER:
-            cType = CdbgExpr::CType::POINTER;
+            cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::VOID:
-            cType = CdbgExpr::CType::VOID;
+            cType = CdbgExpr::CType::Type::VOID;
             break;
         
         default:
-            cType = CdbgExpr::CType::UNKNOWN;
+            cType = CdbgExpr::CType::Type::UNKNOWN;
             break;
         }
         cTypes.push_back(cType);
