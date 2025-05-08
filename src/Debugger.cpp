@@ -195,6 +195,10 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
             break;
         }
         cTypes.push_back(cType);
+        if (type.DCLtype == TypeChainRecord::Type::DCLType::FUNCTION)
+        {
+            cTypes.push_back(CdbgExpr::CType::Type::VOID);
+        }
     }
     return cTypes;
 }
