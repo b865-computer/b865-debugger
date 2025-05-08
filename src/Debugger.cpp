@@ -133,6 +133,7 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
         {
         case TypeChainRecord::Type::DCLType::ARRAY:
             cType = CdbgExpr::CType::Type::ARRAY;
+            cType.size = type.num.n;
             break;
         case TypeChainRecord::Type::DCLType::BITFIELD:
             cType = CdbgExpr::CType::Type::BITFIELD;
