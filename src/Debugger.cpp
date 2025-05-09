@@ -86,6 +86,10 @@ void DebuggerDataHelper::createSymbolDescriptors()
                 symbol.hasAddress = false;
             }
         }
+        if (symbol.cType.size() && symbol.cType[0] == CdbgExpr::CType::Type::ARRAY)
+        {
+            symbol.hasAddress = false;
+        }
         if(symbolRec.onStack)
         {
             symbol.stack = true;
