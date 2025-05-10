@@ -22,6 +22,7 @@ void renderToolBar();
 void renderEditor();
 void renderConsole();
 void renderFilesOpened();
+void renderExpressions();
 
 enum FileInputType
 {
@@ -39,6 +40,7 @@ public:
     friend void renderEditor();
     friend void renderConsole();
     friend void renderFilesOpened();
+    friend void renderExpressions();
 
     enum ToolType
     {

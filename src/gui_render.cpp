@@ -70,7 +70,160 @@ void renderSideBar()
     ImGui::PopStyleVar(2);
 }
 
-std::string expr;
+std::vector<std::string> exprs;
+size_t currentEditingExpr = 0;
+bool editingExpr = false;
+
+void renderCValue(const CdbgExpr::SymbolDescriptor& val)
+{
+    if (val.cType.size() < 1)
+    {
+        return;
+    }
+    std::ostringstream result;
+    auto cType = val.cType;
+    if (cType[0] == CdbgExpr::CType::Type::POINTER)
+    {
+        if (cType.size() < 2)
+        {
+            ImGui::Text("*<unknown type>");
+            return;
+        }
+
+        if (cType[1] == CdbgExpr::CType::Type::CHAR)
+        {
+            if (!val.getValue())
+            {
+                ImGui::Text("0x0");
+                return;
+            }
+            else
+            {
+                result << "0x" << std::hex << val.getValue();
+            }
+            result << " \"";
+            uint64_t addr = val.getValue();
+            char ch;
+            while ((ch = static_cast<char>(val.data->getByte(addr++))) != '\0')
+            {
+                result << ch;
+            }
+            result << "\"";
+            ImGui::Text(result.str().c_str());
+        }
+        else
+        {
+            result << val.typeOf();
+            result << "0x" << std::hex << val.getValue();
+            ImGui::Text(result.str().c_str());
+        }
+    }
+    else if (cType[0] == CdbgExpr::CType::Type::ARRAY)
+    {
+        ImGui::SameLine();
+        ImGui::Text("= []");
+        for (size_t i = 0; i < cType[0].size; i++)
+        {
+            if(ImGui::TreeNode((std::string("[") + std::to_string(i) + "]").c_str()))
+            {
+                renderCValue(val.dereference(i));
+                ImGui::TreePop();
+            }
+            else
+            {
+                ImGui::SameLine();
+                ImGui::Text("= %s", val.dereference(i).toString().c_str());
+            }
+        }
+    }
+    else if (cType[0] == CdbgExpr::CType::Type::STRUCT)
+    {
+        ImGui::SameLine();
+        ImGui::Text("= {}");
+        for (auto& member : val.members)
+        {
+            if(ImGui::TreeNode(member.first.c_str()))
+            {
+                renderCValue(member.second.symbol);
+                ImGui::TreePop();
+            }
+            else
+            {
+                ImGui::SameLine();
+                ImGui::Text("= %s", val.toString().c_str());
+            }
+            ImGui::NewLine();
+        }
+        return;
+    }
+    else
+    {
+        ImGui::Text("%s%s", val.typeOf().c_str(), std::visit([](auto && value) 
+            { return std::to_string(value); }, val.getRealValue()).c_str());
+    }
+
+    return;
+}
+
+void renderExpressions()
+{
+    for (size_t i = 0; i < exprs.size(); i++)
+    {
+        ImGui::PushID(static_cast<int>(i));
+
+        if (editingExpr && currentEditingExpr == i)
+        {
+            ImGui::InputText("##edit_expr", &exprs[i]);
+        }
+        else
+        {
+            // Transparent header when idle, visible on hover/active
+            ImGui::PushStyleColor(ImGuiCol_Header,        ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.2f, 0.5f, 0.9f, 0.3f));
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive,  ImVec4(0.2f, 0.5f, 0.9f, 0.6f));
+
+            CdbgExpr::SymbolDescriptor result;
+
+            try
+            {
+                CdbgExpr::Expression e(exprs[i], &gui->m_emulator);
+                result = e.eval(true);
+            }
+            catch (const std::exception& ex)
+            {
+            }
+
+            if (ImGui::TreeNodeEx(exprs[i].c_str(), ImGuiTreeNodeFlags_OpenOnArrow))
+            {
+                renderCValue(result);
+                ImGui::TreePop();
+            }
+            else
+            {
+                ImGui::SameLine();
+                ImGui::Text("= %s", result.toString().c_str());
+            }
+
+            ImGui::PopStyleColor(3);
+        }
+
+        ImGui::PopID();
+    }
+
+    // Button for adding new expressions
+    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.5f, 0.9f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.2f, 0.5f, 0.9f, 0.6f));
+
+    if (ImGui::Button("+"))
+    {
+        exprs.push_back("");
+        editingExpr = true;
+        currentEditingExpr = exprs.size() - 1;
+    }
+
+    ImGui::PopStyleColor(3);
+}
 
 void renderSideTool()
 {
@@ -149,7 +302,7 @@ void renderSideTool()
                 for (const auto& symbol : 
                     gui->m_emulator.m_debuggerData.globalScope)
                 {
-                    ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.toUnsigned());
+                    ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
                 }
                 for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
                 {
@@ -157,7 +310,7 @@ void renderSideTool()
                     {
                         for (const auto& symbol : pair.second)
                         {
-                            ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.toUnsigned());
+                            ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
                         }
                     }
                 }
@@ -167,27 +320,15 @@ void renderSideTool()
                     {
                         for (const auto& symbol : pair.second)
                         {
-                            ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.toUnsigned());
+                            ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.value);
                         }
                     }
                 }
             }
         }
         else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
-        {
-            ImGui::PushID("ipunt_expr");
-            ImGui::InputText("", &expr);
-            ImGui::PopID();
-            CdbgExpr::Expression e(expr, &gui->m_emulator);
-            std::string str;
-            try {
-                str = e.eval(true).toString();
-            }
-            catch (std::exception &e)
-            {
-                str = e.what();
-            }
-            ImGui::Text(str.c_str());
+        {   
+            renderExpressions();
         }
     }
     ImGui::End();
