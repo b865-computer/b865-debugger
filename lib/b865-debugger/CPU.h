@@ -5,6 +5,7 @@
 
 #include "Common.h"
 #include "MEM.h"
+#include <unordered_set>
 
 union uint16_ADDR
 {
@@ -124,9 +125,12 @@ public:
     void stopPheripherials();
     const CPU_Status &getStatus();
     void setReg(uint8_t regNum, uint8_t val);
+    void setBreakpoints(const std::unordered_set<uint16_t>& breakpoints);
 
 public:
     MEMORY mem;
+    bool stoppedAtBreakpoint = false;
+    uint16_t savedPC = 0;
 
 private:
     void executeSignals();
@@ -135,6 +139,7 @@ private:
 
 private:
     int m_cycle = 0;
+    std::unordered_set<uint16_t> m_breakpoints;
 };
 
 #endif // _CPU_H_

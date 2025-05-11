@@ -52,7 +52,7 @@ int CPU::loadProgramFromFile(std::string filename)
     std::ifstream file(filename, std::ios::binary | std::ios::in);
     if (!file.is_open())
     {
-        fprintf(stderr, "Error: unable to open file %s\n", filename.c_str());
+        fprintf(stderr, "Error: unable to open file: %s\n", filename.c_str());
         return 1;
     }
     uint8_t *program = new uint8_t[len];
@@ -136,6 +136,20 @@ void CPU::setReg(uint8_t regNum, uint8_t val)
 
 void CPU::cycle()
 {
+    if (stoppedAtBreakpoint && savedPC != PC.addr)
+    {
+        return;
+    }
+
+    if (savedPC != PC.addr)
+    {
+        if (m_breakpoints.contains(PC.addr))
+        {
+            stoppedAtBreakpoint = true;
+            savedPC = PC.addr;
+        }
+    }
+
     if (signals.HLT)
     {
         return;
@@ -154,6 +168,11 @@ void CPU::cycle()
         }
     }
     executeSignals();
+}
+
+void CPU::setBreakpoints(const std::unordered_set<uint16_t>& breakpoints)
+{
+    m_breakpoints = breakpoints;
 }
 
 void CPU::executeSignals()

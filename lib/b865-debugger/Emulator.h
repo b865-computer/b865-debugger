@@ -20,9 +20,16 @@ public:
     int load(std::string filename);
     int load(std::vector<uint8_t> &programData);
     int main();
-    void start();
     void terminate();
     std::chrono::nanoseconds getRunTime_ns();
+    void setInsLevel(bool);
+    
+    void start();
+    void stop();
+    bool pausedAtBreakpoint();
+    void pause();
+    bool clockRunning();
+    void continue_exec();
     
     CdbgExpr::SymbolDescriptor getSymbol(const std::string &name) override;
     uint8_t getByte(uint64_t address) override;

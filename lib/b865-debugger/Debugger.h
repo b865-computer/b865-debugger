@@ -39,9 +39,9 @@ public:
     FileScopedSymbols fileScope;
     FuncScopedSymbols funcScope;
     SymbolVector globalScope;
+    DebuggerData data;
 
 private:
-    DebuggerData data;
     std::string binfile;
 };
 

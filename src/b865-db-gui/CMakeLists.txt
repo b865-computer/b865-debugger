@@ -15,6 +15,5 @@ target_link_libraries(b865-gui
     ImGuiFileDialog
     OpenGL::GL
     glfw
-    -ljsoncpp
     b865-debugger
 )

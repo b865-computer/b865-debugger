@@ -17,4 +17,5 @@ target_include_directories(b865-debugger PUBLIC
 target_link_libraries(b865-debugger PUBLIC 
     CdbgExpr
     libintelhex
+    -ljsoncpp
 )
