@@ -5,7 +5,6 @@ GUI guiApp;
 
 int main(int argc, char *argv[])
 {
-    initExeBasePath();
     if(guiApp.init())
     {
         return 1;

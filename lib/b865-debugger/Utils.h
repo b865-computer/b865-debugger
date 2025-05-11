@@ -27,8 +27,6 @@ typedef bool M_PROCESS;
 
 template<typename tVal> tVal map_value(std::pair<tVal,tVal> a, std::pair<tVal, tVal> b, tVal inVal);
 
-void initExeBasePath();
-std::string getExeBasePath();
 std::string getFilePathFromExeRelative(std::string relPath);
 
 std::string getFnWithoutPath(std::string filename);
