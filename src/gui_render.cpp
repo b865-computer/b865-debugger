@@ -457,7 +457,7 @@ void renderEditor()
                 editor.SetText(tab->getContent());
             }
         }
-        TextEditor::Breakpoints breakpoints = {(int)gui->currentPosition.line};
+        TextEditor::Breakpoints breakpoints = {gui->currentPosition.line};
         editor.SetBreakpoints(breakpoints);
         editor.Render("");
     }
