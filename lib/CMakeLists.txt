@@ -1,5 +1,3 @@
-add_subdirectory(CdbgExpr)
-
 # === ImGui ===
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 
@@ -37,3 +35,6 @@ target_link_libraries(ImGuiFileDialog PUBLIC imgui)
 # === libintelhex ===
 add_library(libintelhex ${CMAKE_CURRENT_SOURCE_DIR}/libintelhex/src/intelhex.cc)
 target_include_directories(libintelhex PUBLIC libintelhex/include)
+
+add_subdirectory(CdbgExpr)
+add_subdirectory(b865-debugger)

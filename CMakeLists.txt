@@ -10,22 +10,21 @@ add_subdirectory(lib)
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
-add_executable(b865-debugger ${SRC_FILES})
+add_executable(b865-db-gui ${SRC_FILES})
 
-target_compile_options(b865-debugger PUBLIC -O3)
+target_compile_options(b865-db-gui  PUBLIC -O3)
 
-target_include_directories(b865-debugger PUBLIC src lib/stb_image)
+target_include_directories(b865-db-gui PUBLIC src lib/stb_image)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
-target_link_libraries(b865-debugger
+target_link_libraries(b865-db-gui
     imgui
     ImGuiColorTextEdit
     ImGuiFileDialog
-    libintelhex
     OpenGL::GL
     glfw
     -ljsoncpp
-    CdbgExpr
+    b865-debugger
 )
