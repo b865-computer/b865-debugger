@@ -8,6 +8,7 @@
 #include "Debugger.h"
 #include <CdbgExpr.h>
 #include <functional>
+#include "Breakpoints.h"
 
 void cycle();
 
@@ -39,12 +40,17 @@ public:
     uint8_t getRegContent(uint8_t regNum) override;
     void setRegContent(uint8_t regNum, uint8_t val) override;
 
+    size_t getCurrentBreakPointId();
+    void addBreakpoint(const std::vector<std::string>& args);
+    void delBreakpoint(const std::vector<std::string>& args);
+
 public:
     DebuggerDataHelper m_debuggerData;
     Clock m_clock;
     CPU &m_cpu;
     Pheriph **m_pheripherials = nullptr;
     int m_pheriphCount = 0;
+    BreakpointList breakpoints;
 
 private:
     void printError(const char* fmt, ...);

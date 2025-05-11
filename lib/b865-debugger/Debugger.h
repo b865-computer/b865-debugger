@@ -5,9 +5,9 @@
 #include "Parser/Parser.h"
 #include <CdbgExpr.h>
 #include "Common.h"
+#include "Breakpoints.h"
 
-typedef LinkerRecord CodePosition; // name = fileName
-typedef CodePosition breakpoint;
+typedef Breakpoint CodePosition;
 
 class FuncScopeData
 {

@@ -225,3 +225,29 @@ void Emulator::setRegContent(uint8_t regNum, uint8_t val)
     }
     m_cpu.setReg(regNum, val);
 }
+
+size_t Emulator::getCurrentBreakPointId()
+{
+    auto it = std::find_if(breakpoints.breakpoints.begin(), breakpoints.breakpoints.end(), [this](const Breakpoint& b)
+    {
+        return m_cpu.savedPC == b.addr;
+    });
+    if (it != breakpoints.breakpoints.end())
+    {
+        return it->id;
+    }
+    return 0;
+}
+
+void Emulator::addBreakpoint(const std::vector<std::string> &args)
+{
+    auto bp = breakpoints.addBreakpoint(args, &m_debuggerData.data);
+    m_cpu.breakpoints.insert(bp.addr);
+}
+
+void Emulator::delBreakpoint(const std::vector<std::string> &args)
+{
+    breakpoints.delBreakpoint(args);
+    std::unordered_set<uint16_t> addrSet(breakpoints.addresses.begin(), breakpoints.addresses.end());
+    m_cpu.setBreakpoints(addrSet);
+}

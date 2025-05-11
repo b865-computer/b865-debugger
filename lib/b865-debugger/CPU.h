@@ -125,12 +125,13 @@ public:
     void stopPheripherials();
     const CPU_Status &getStatus();
     void setReg(uint8_t regNum, uint8_t val);
-    void setBreakpoints(const std::unordered_set<uint16_t>& breakpoints);
+    void setBreakpoints(const std::unordered_set<uint16_t>& _breakpoints);
 
 public:
     MEMORY mem;
     bool stoppedAtBreakpoint = false;
     uint16_t savedPC = 0;
+    std::unordered_set<uint16_t> breakpoints;
 
 private:
     void executeSignals();
@@ -139,7 +140,6 @@ private:
 
 private:
     int m_cycle = 0;
-    std::unordered_set<uint16_t> m_breakpoints;
 };
 
 #endif // _CPU_H_

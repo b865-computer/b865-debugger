@@ -60,7 +60,7 @@ CodePosition DebuggerDataHelper::getPosition(uint64_t addr)
 {
     CodePosition pos;
     auto line = data.getLine(addr);
-    pos.name = line.filename;
+    pos.file = line.filename;
     pos.addr = addr;
     pos.line = line.line;
     return pos;

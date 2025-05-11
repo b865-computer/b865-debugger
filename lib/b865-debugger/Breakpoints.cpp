@@ -122,6 +122,7 @@ BreakpointData BreakpointList::addBreakpoint(std::string &file, size_t &line, De
     bpData.id = bp.id;
     bpData.line = line;
     bpData.file = file;
+    breakpoints.push_back(bp);
     updateAddresses();
     return bpData;
 }
@@ -159,7 +160,7 @@ BreakpointData BreakpointList::addBreakpoint(const std::vector<std::string> &arg
 
     if (args.size() > 2)
     {
-        if (args[i] == ":")
+        if (args[i] == ":" && args.size() > 3)
         {
             i++;
         }

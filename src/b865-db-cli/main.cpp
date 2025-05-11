@@ -8,10 +8,8 @@
 #include "Emulator.h"
 #include "Parser/Parser.h"
 #include "CLI.h"
-#include "Breakpoints.h"
 
 CLI cli;
-BreakpointList breakpoints;
 Emulator emulator([](const std::string& error)
 {
     printf(error.c_str());
@@ -50,14 +48,15 @@ int main(int argc, char *argv[])
     cli.addCommand("print", "<string>", true, [](const std::vector<std::string> &args)
                    { if (args.size() > 1) { std::cout << args[1] << std::endl; } }, "Print the string");
     cli.addCommand("break", "<position>", true, [](const std::vector<std::string> &args)
-                   { breakpoints.addBreakpoint(args, &emulator.m_debuggerData.data); }, "Add a breakpoint at the specified location (file:line or line [in the current file])");
+                   { emulator.addBreakpoint(args); }, "Add a breakpoint at the specified location (file:line or line [in the current file])");
     cli.addCommand("delete", "<id>", true, [](const std::vector<std::string> &args)
-                   { breakpoints.delBreakpoint(args); }, "Delete the breakpoint(s) with the specified id(s)");
+                   { emulator.delBreakpoint(args); }, "Delete the breakpoint(s) with the specified id(s)");
     cli.addCommand("run", "", true, [](const std::vector<std::string> &args)
-                   {
+                    {
                         (void)args;
                         emulator.start();
-                        emulator.continue_exec(); }, "Start the emulator/debugger");
+                        emulator.continue_exec();
+                    }, "Start the emulator/debugger");
     cli.addCommand("continue", "", true, [](const std::vector<std::string> &args)
                    { emulator.continue_exec(); emulator.start(); (void)args; }, "continue the execution of the program");
     handleArgs(args);
@@ -83,14 +82,7 @@ int main(int argc, char *argv[])
         {
             if (emulator.pausedAtBreakpoint())
             {
-                auto it = std::find_if(breakpoints.breakpoints.begin(), breakpoints.breakpoints.end(), [](Breakpoint b){
-                    return b.addr == emulator.m_cpu.savedPC;
-                });
-                size_t id = 0;
-                if (it != breakpoints.breakpoints.end())
-                {
-                    id = it->id;
-                }
+                size_t id = emulator.getCurrentBreakPointId();
                 printf("Program hit breakpoint %ld at address 0x%04x\n", id, emulator.m_cpu.getStatus().PC.addr);
                 emulator.stop();
             }

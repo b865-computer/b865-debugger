@@ -136,14 +136,15 @@ void CPU::setReg(uint8_t regNum, uint8_t val)
 
 void CPU::cycle()
 {
-    if (stoppedAtBreakpoint && savedPC != PC.addr)
+    if (stoppedAtBreakpoint)
     {
         return;
     }
 
     if (savedPC != PC.addr)
     {
-        if (m_breakpoints.contains(PC.addr))
+        savedPC = 0;
+        if (breakpoints.contains(PC.addr))
         {
             stoppedAtBreakpoint = true;
             savedPC = PC.addr;
@@ -170,9 +171,9 @@ void CPU::cycle()
     executeSignals();
 }
 
-void CPU::setBreakpoints(const std::unordered_set<uint16_t>& breakpoints)
+void CPU::setBreakpoints(const std::unordered_set<uint16_t>& _breakpoints)
 {
-    m_breakpoints = breakpoints;
+    breakpoints = _breakpoints;
 }
 
 void CPU::executeSignals()
