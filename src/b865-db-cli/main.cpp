@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
 
     cli.addCommand("quit", "", true, [](const std::vector<std::string> &args)
                    { cli.quit(); (void)args;}, "Quit the program");
-    cli.addCommand("print", "<string>", true, [](const std::vector<std::string> &args)
-                   { if (args.size() > 1) { std::cout << args[1] << std::endl; } }, "Print the string");
+    cli.addCommand("print", "<expression>", true, [](const std::vector<std::string> &args)
+                   { if (args.size() > 1) { std::cout << CdbgExpr::Expression(args[1], &emulator).eval(false) << std::endl; } }, "evaluate an expression");
     cli.addCommand("break", "<position>", true, [](const std::vector<std::string> &args)
                    { emulator.addBreakpoint(args); }, "Add a breakpoint at the specified location (file:line or line [in the current file])");
     cli.addCommand("delete", "<id>", true, [](const std::vector<std::string> &args)
