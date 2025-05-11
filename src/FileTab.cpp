@@ -145,12 +145,12 @@ FileTabManager::~FileTabManager()
 
 void FileTabManager::renderFileTabs()
 {
-    int i = 0;
     bool pop = false;
     if (ImGui::BeginChild("TabScrollRegion", ImVec2(0, 30), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar))
     {
-        for (auto fileTab : m_fileTabs)
+        for (size_t i = 0; i < m_fileTabs.size(); i++)
         {
+            auto fileTab = m_fileTabs[i];
             pop = false;
             if (fileTab == m_currentFileTab)
             {
@@ -173,7 +173,7 @@ void FileTabManager::renderFileTabs()
             else {
                 ImGui::SmallButton(" ");
             }
-            if (fileTab != *m_fileTabs.end().base()) {
+            if (i < m_fileTabs.size() - 1) {
                 ImGui::SameLine();
                 ImGui::Text("|");
             }
@@ -196,7 +196,6 @@ void FileTabManager::renderFileTabs()
 
             ImGui::SameLine();
             ImGui::PopID();
-            i++;
         }
     }
     ImGui::EndChild();
