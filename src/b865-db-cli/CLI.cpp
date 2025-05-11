@@ -1,6 +1,8 @@
 #include "CLI.h"
 #include <iostream>
 #include <iomanip>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 CLI::CLI()
 {
@@ -10,10 +12,15 @@ CLI::CLI()
 
 bool CLI::run()
 {
-    std::string line;
-    std::cout << ">> ";
-    if (!std::getline(std::cin, line))
-        return false;
+    char* input = readline(">> ");
+    if (!input) return false; // EOF (Ctrl+D)
+
+    std::string line(input);
+    free(input);
+
+    if (!line.empty())
+        add_history(line.c_str());
+
     processCommand(line);
     return !running;
 }
