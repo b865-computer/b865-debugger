@@ -447,7 +447,7 @@ void renderEditor()
     {
         if (fileTabManager.changedCurrentTab())
         {
-            FileTab *tab = fileTabManager.getCurrentFileTab();
+            std::shared_ptr<FileTab> tab = fileTabManager.getCurrentFileTab();
             if (tab == nullptr)
             {
                 editor.SetText(noOpenedFileText);

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include <memory>
 
 class FileTabManager;
 
@@ -60,17 +61,17 @@ public:
     FileTabManager();
     ~FileTabManager();
     void addFileTab(const std::string &filename, FileTab::FileWarningCallback callback);
+    void removeFileTab(std::shared_ptr<FileTab> fileTab);
     void refreshFileTabs();
     void renderFileTabs();
-    void removeFileTab(FileTab *fileTab);
-    void saveFileTab(FileTab *fileTab);
+    void saveFileTab(std::shared_ptr<FileTab>);
     bool changedCurrentTab();
-    FileTab *getCurrentFileTab();
-    FileTab *getFileTab(std::string filename);
+    std::shared_ptr<FileTab> getCurrentFileTab();
+    std::shared_ptr<FileTab> getFileTab(std::string filename);
 
 private:
-    std::vector<FileTab *> m_fileTabs;
-    FileTab *m_currentFileTab;
+    std::vector<std::shared_ptr<FileTab>> m_fileTabs;
+    std::shared_ptr<FileTab> m_currentFileTab = nullptr;
     bool m_changed;
 };
 

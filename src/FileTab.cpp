@@ -212,7 +212,7 @@ void FileTabManager::refreshFileTabs()
     }
 }
 
-void FileTabManager::saveFileTab(FileTab *fileTab)
+void FileTabManager::saveFileTab(std::shared_ptr<FileTab> fileTab)
 {
     fileTab->save(fileTab->m_buffer);
 }
@@ -227,12 +227,12 @@ bool FileTabManager::changedCurrentTab()
     return false;
 }
 
-FileTab *FileTabManager::getCurrentFileTab()
+std::shared_ptr<FileTab> FileTabManager::getCurrentFileTab()
 {
     return m_currentFileTab;
 }
 
-FileTab *FileTabManager::getFileTab(std::string filename)
+std::shared_ptr<FileTab> FileTabManager::getFileTab(std::string filename)
 {
     for (auto fileTab : m_fileTabs)
     {
@@ -244,7 +244,7 @@ FileTab *FileTabManager::getFileTab(std::string filename)
     return nullptr;
 }
 
-void FileTabManager::removeFileTab(FileTab *fileTab)
+void FileTabManager::removeFileTab(std::shared_ptr<FileTab> fileTab)
 {
     auto it = std::find(m_fileTabs.begin(), m_fileTabs.end(), fileTab);
     if (it != m_fileTabs.end())
@@ -262,14 +262,12 @@ void FileTabManager::removeFileTab(FileTab *fileTab)
             }
             m_changed = true;
         }
-        delete fileTab;
         fileTab = nullptr;
     }
 }
 
 void FileTabManager::addFileTab(const std::string &filename, FileTab::FileWarningCallback callback)
 {
-    FileTab *fileTab = new FileTab(filename, callback);
-    fileTab->init();
-    m_fileTabs.push_back(fileTab);
+    m_fileTabs.push_back(std::make_unique<FileTab>(filename, callback));
+    m_fileTabs.back()->init();
 }
