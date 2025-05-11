@@ -1,4 +1,3 @@
-#include "Emulator.h"
 #include "gui.h"
 #include "TextEditor.h"
 #include "ImGuiFileDialog.h"
@@ -284,15 +283,15 @@ void renderSideTool()
                 ImGui::Text("ALU OP: %i", gui->m_CPUStatus.ALU_OP);
             }
 
-            for (int i = 0; i < gui->m_pheriphCount; i++)
+            for (int i = 0; i < gui->m_emulator.m_pheriphCount; i++)
             {
-                if (ImGui::CollapsingHeader(gui->m_pheripherials[0]->m_name.c_str()))
+                if (ImGui::CollapsingHeader(gui->m_emulator.m_pheripherials[0]->m_name.c_str()))
                 {
-                    for (size_t i = 0; i < gui->m_pheripherials[0]->m_regNames.size(); i++)
+                    for (size_t i = 0; i < gui->m_emulator.m_pheripherials[0]->m_regNames.size(); i++)
                     {
                         ImGui::Text(" %s: %i",
-                                    gui->m_pheripherials[0]->m_regNames[i].c_str(),
-                                    gui->m_pheripherials[0]->regs[i]);
+                                    gui->m_emulator.m_pheripherials[0]->m_regNames[i].c_str(),
+                                    gui->m_emulator.m_pheripherials[0]->regs[i]);
                     }
                 }
             }

@@ -1,25 +1,12 @@
-#include "Emulator.h"
 #include "gui.h"
 
-GUI::GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu)
-    : m_emulator(emulator), m_CPUStatus(status), m_cpu(cpu), m_clock(clock)
-{
-    m_pheripherials = nullptr;
-    m_pheriphCount = 0;
-}
-
-GUI::~GUI()
-{
-    if (m_pheripherials)
+GUI::GUI()
+    :  m_emulator([this](const std::string& str)
     {
-        delete[] m_pheripherials;
-    }
-}
+        displayError(str.c_str());
+    }), m_CPUStatus(m_emulator.m_cpu.getStatus()), m_cpu(m_emulator.m_cpu), m_clock(m_emulator.m_clock) {}
 
-bool GUI::windowClosed()
-{
-    return end;
-}
+GUI::~GUI() {}
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -233,8 +220,11 @@ void printWindowLayouts(Window_Attrib *window, int indent = 0)
 
 int GUI::init()
 {
+    if (m_emulator.init())
+    {
+        return 1;
+    }
     gui = this;
-    m_pheripherials = m_cpu.mem.getPheripherials(&m_pheriphCount);
 
     window_main.addChild(&window_side_tool);
     window_side_tool.addChild(&window_toolBar);
@@ -594,10 +584,86 @@ int GUI::render()
     return 0;
 }
 
+int GUI::load(std::string filename, std::string path)
+{
+    if(path.size() != 0)
+    {
+        filename = path + "/" + filename;
+        projectPath = path;
+    }
+    else
+    {
+        path = projectPath = getPath(filename);
+    }
+    
+    if(isExtEqual(filename, "b865"))
+    {
+        projectFileName = filename;
+        NewProjectOpened = false;
+    }
+    return m_emulator.load(filename);
+}
+
 int GUI::main()
 {
-    if (!glfwWindowShouldClose(window))
+    std::string outputLines;
+    ConsoleText = &outputLines;
+    M_PROCESS_OUT buildProcessOut = nullptr;
+    M_PROCESS buildProcess;
+    bool buildProcessRunning = false;
+    std::string buildCmd;
+    m_emulator.start();
+
+    while (!glfwWindowShouldClose(window))
     {
+        m_emulator.main();
+        if(!m_clock.getStatus())
+        {
+            currentPosition = m_emulator.m_debuggerData.getPosition(m_cpu.getStatus().PC.addr - 1);
+        }
+        
+        if (NewProjectOpened)
+        {
+            if(!load(projectFileName))
+            {
+                m_cpu.startExec();
+            }
+        }
+        
+        if(buildRunning && !buildProcessRunning)
+        {
+            buildCmd = "make";
+            outputLines.clear();
+            outputLines += buildCmd + "\n";
+            buildProcessOut = startProgram(projectPath, buildCmd, buildProcess);
+            if(buildProcess == M_PROCESS_INVALID || buildProcessOut == M_PROCESS_INVALID)
+            {
+                displayError("Failed to start build process");
+                buildRunning = false;
+            }
+            else
+            {
+                buildProcessRunning = true;
+            }
+        }
+        if (buildProcessRunning)
+        {
+            buildProcessRunning = pollProgramOutput(buildProcessOut, outputLines);
+            if(!buildProcessRunning)
+            {
+                unsigned long exitCode;
+                if((exitCode = programExitCode(buildProcess, buildProcessOut, &buildProcessRunning)))
+                {
+                    displayError("Build process exited with code: %d", exitCode);
+                }
+                if(!buildProcessRunning)
+                {
+                    outputLines += ("Process exited with code: " + std::to_string(exitCode) + "\n");
+                }
+            }
+            buildRunning = buildProcessRunning;
+        }
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -607,7 +673,7 @@ int GUI::main()
         if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != GLFW_FALSE || glfwGetWindowAttrib(window, GLFW_VISIBLE) != GLFW_TRUE)
         {
             ImGui_ImplGlfw_Sleep(100);
-            return 0;
+            continue;
         }
         render();
         m_clock.setStatus(isRunning);
@@ -616,12 +682,10 @@ int GUI::main()
             building = true;
         }
         glfwSwapBuffers(window);
+        ImGui_ImplGlfw_Sleep(10);
     }
-    else
-    {
-        end = true;
-    }
-    ImGui_ImplGlfw_Sleep(10);
+    terminate();
+    m_emulator.terminate();
     return 0;
 }
 

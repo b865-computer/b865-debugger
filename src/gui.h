@@ -2,18 +2,16 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
-class GUI;
-
 #include "Common.h"
 
 #include <GL/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include "Emulator.h"
 #include "CPU.h"
 #include "Clock.h"
 #include "Debugger.h"
 #include "Window.h"
-#include "Emulator.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void renderSideBar();
@@ -49,13 +47,13 @@ public:
         TOOL_DEBUGGER,
     };
 
-    GUI(Emulator& emulator, const CPU_Status &status, Clock &clock, CPU &cpu);
+    GUI();
     ~GUI();
     int init();
     void terminate();
-    bool windowClosed();
     int main();
     void displayError(const char *fmt, ...);
+    int load(std::string filename, std::string path = "");
 
 private:
     void renderMenu();
@@ -75,15 +73,12 @@ public:
     bool ins_level;
 
 private:
+    Emulator m_emulator;
     ToolType sideBarToolType = TOOL_EXPLORER;
     GLFWwindow *window;
-    Emulator &m_emulator;
     const CPU_Status &m_CPUStatus;
     CPU &m_cpu;
     Clock &m_clock;
-    Pheriph **m_pheripherials = nullptr;
-    int m_pheriphCount = 0;
-    bool end = false;
     std::string error_str;
     bool error_display;
     bool building = false;

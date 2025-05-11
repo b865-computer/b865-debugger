@@ -1,23 +1,23 @@
-#include "Emulator.h"
+#include "gui.h"
 #include "Utils.h"
 
-Emulator emulator;
+GUI guiApp;
 
 int main(int argc, char *argv[])
 {
     initExeBasePath();
-    if(emulator.init())
+    if(guiApp.init())
     {
         return 1;
     }
 
     if(argc >= 2)
     {
-        if(emulator.load(argv[1]))
+        if(guiApp.load(argv[1]))
         {
             return 1;
         }
     }
 
-    return emulator.main();
+    return guiApp.main();
 }
