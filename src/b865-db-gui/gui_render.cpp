@@ -226,111 +226,104 @@ void renderExpressions()
 
 void renderSideTool()
 {
-    if (ImGui::Begin("SideTool", nullptr,
-        ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings))
+    if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
     {
-        if (gui->sideBarToolType == GUI::ToolType::TOOL_EXPLORER)
+        explorer.render(true);
+    }
+    else if (gui->sideBarToolType == GUI::ToolType::TOOL_EMUALTOR)
+    {
+        ImGui::Text("Frequency: %liHz", gui->m_frequencyHZ);
+        if (showRealFrequency)
         {
-            explorer.render(true);
+            ImGui::Text("Real freq. %.0fHz",
+                ((double)gui->m_clock.getCycles() /
+                ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
         }
-        else if (gui->sideBarToolType == GUI::ToolType::TOOL_EMUALTOR)
+
+        if (ImGui::CollapsingHeader("Registers"))
         {
-            ImGui::Text("Frequency: %liHz", gui->m_frequencyHZ);
-            if (showRealFrequency)
-            {
-                ImGui::Text("Real freq. %.0fHz",
-                    ((double)gui->m_clock.getCycles() /
-                    ((double)gui->m_clock.getRunTime_ns().count() / 1e9)));
-            }
+            ImGui::Text("PC: 0x%04X", gui->m_CPUStatus.PC.addr);
+            ImGui::Text("A: 0x%02X", gui->m_CPUStatus.A);
+            ImGui::Text("B: 0x%02X", gui->m_CPUStatus.B);
+            ImGui::Text("IR0: 0x%02X", gui->m_CPUStatus.IR0);
+            ImGui::Text("IR1: 0x%02X", gui->m_CPUStatus.IR1);
+            ImGui::Text("AR: 0x%02X", gui->m_CPUStatus.AR);
+            ImGui::Separator();
+            ImGui::Text("ACC: 0x%02X", gui->m_CPUStatus.registers[0]);
+            ImGui::Text("X: 0x%02X", gui->m_CPUStatus.registers[1]);
+            ImGui::Text("Y: 0x%02X", gui->m_CPUStatus.registers[2]);
+            ImGui::Text("SP: 0x%02X", gui->m_CPUStatus.registers[3]);
+            ImGui::Text("R0: 0x%02X", gui->m_CPUStatus.registers[4]);
+            ImGui::Text("R1: 0x%02X", gui->m_CPUStatus.registers[5]);
+            ImGui::Text("R2: 0x%02X", gui->m_CPUStatus.registers[6]);
+            ImGui::Text("R3: 0x%02X", gui->m_CPUStatus.registers[7]);
+        }
 
-            if (ImGui::CollapsingHeader("Registers"))
-            {
-                ImGui::Text("PC: 0x%04X", gui->m_CPUStatus.PC.addr);
-                ImGui::Text("A: 0x%02X", gui->m_CPUStatus.A);
-                ImGui::Text("B: 0x%02X", gui->m_CPUStatus.B);
-                ImGui::Text("IR0: 0x%02X", gui->m_CPUStatus.IR0);
-                ImGui::Text("IR1: 0x%02X", gui->m_CPUStatus.IR1);
-                ImGui::Text("AR: 0x%02X", gui->m_CPUStatus.AR);
-                ImGui::Separator();
-                ImGui::Text("ACC: 0x%02X", gui->m_CPUStatus.registers[0]);
-                ImGui::Text("X: 0x%02X", gui->m_CPUStatus.registers[1]);
-                ImGui::Text("Y: 0x%02X", gui->m_CPUStatus.registers[2]);
-                ImGui::Text("SP: 0x%02X", gui->m_CPUStatus.registers[3]);
-                ImGui::Text("R0: 0x%02X", gui->m_CPUStatus.registers[4]);
-                ImGui::Text("R1: 0x%02X", gui->m_CPUStatus.registers[5]);
-                ImGui::Text("R2: 0x%02X", gui->m_CPUStatus.registers[6]);
-                ImGui::Text("R3: 0x%02X", gui->m_CPUStatus.registers[7]);
-            }
+        if (ImGui::CollapsingHeader("Flags"))
+        {
+            ImGui::Text("Carry: %i", gui->m_CPUStatus.flags.carry);
+            ImGui::Text("Zero: %i", gui->m_CPUStatus.flags.zero);
+            ImGui::Text("Negative: %i", gui->m_CPUStatus.flags.negative);
+        }
 
-            if (ImGui::CollapsingHeader("Flags"))
-            {
-                ImGui::Text("Carry: %i", gui->m_CPUStatus.flags.carry);
-                ImGui::Text("Zero: %i", gui->m_CPUStatus.flags.zero);
-                ImGui::Text("Negative: %i", gui->m_CPUStatus.flags.negative);
-            }
+        if (ImGui::CollapsingHeader("Emulation internals"))
+        {
+            ImGui::Text("MAR: 0x%04X", gui->m_CPUStatus.MAR.addr);
+            ImGui::Text("InsCycle: %i", gui->m_CPUStatus.InsCycle);
+            ImGui::Text("AdrCycle: %i", gui->m_CPUStatus.AdrCycle);
+            ImGui::Text("Addressing: %s", gui->m_CPUStatus.AdrState ? "true" : "false");
+            ImGui::Text("Signals: 0x%08x", gui->m_CPUStatus.signals.val);
+            ImGui::Text("RI: %i", gui->m_CPUStatus.RI);
+            ImGui::Text("RO: %i", gui->m_CPUStatus.RO);
+            ImGui::Text("ALU OP: %i", gui->m_CPUStatus.ALU_OP);
+        }
 
-            if (ImGui::CollapsingHeader("Emulation internals"))
+        for (int i = 0; i < gui->m_emulator.m_pheriphCount; i++)
+        {
+            if (ImGui::CollapsingHeader(gui->m_emulator.m_pheripherials[0]->m_name.c_str()))
             {
-                ImGui::Text("MAR: 0x%04X", gui->m_CPUStatus.MAR.addr);
-                ImGui::Text("InsCycle: %i", gui->m_CPUStatus.InsCycle);
-                ImGui::Text("AdrCycle: %i", gui->m_CPUStatus.AdrCycle);
-                ImGui::Text("Addressing: %s", gui->m_CPUStatus.AdrState ? "true" : "false");
-                ImGui::Text("Signals: 0x%08x", gui->m_CPUStatus.signals.val);
-                ImGui::Text("RI: %i", gui->m_CPUStatus.RI);
-                ImGui::Text("RO: %i", gui->m_CPUStatus.RO);
-                ImGui::Text("ALU OP: %i", gui->m_CPUStatus.ALU_OP);
-            }
-
-            for (int i = 0; i < gui->m_emulator.m_pheriphCount; i++)
-            {
-                if (ImGui::CollapsingHeader(gui->m_emulator.m_pheripherials[0]->m_name.c_str()))
+                for (size_t i = 0; i < gui->m_emulator.m_pheripherials[0]->m_regNames.size(); i++)
                 {
-                    for (size_t i = 0; i < gui->m_emulator.m_pheripherials[0]->m_regNames.size(); i++)
-                    {
-                        ImGui::Text(" %s: %i",
-                                    gui->m_emulator.m_pheripherials[0]->m_regNames[i].c_str(),
-                                    gui->m_emulator.m_pheripherials[0]->regs[i]);
-                    }
-                }
-            }
-
-            if (ImGui::CollapsingHeader("Symbols, variables"))
-            {
-                for (const auto& symbol : 
-                    gui->m_emulator.m_debuggerData.globalScope)
-                {
-                    ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
-                }
-                for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
-                {
-                    if (ImGui::CollapsingHeader(("File: " + pair.first).c_str()))
-                    {
-                        for (const auto& symbol : pair.second)
-                        {
-                            ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
-                        }
-                    }
-                }
-                for (const auto& pair : gui->m_emulator.m_debuggerData.funcScope)
-                {
-                    if (ImGui::CollapsingHeader(("Func" + pair.first).c_str()))
-                    {
-                        for (const auto& symbol : pair.second)
-                        {
-                            ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.value);
-                        }
-                    }
+                    ImGui::Text(" %s: %i",
+                                gui->m_emulator.m_pheripherials[0]->m_regNames[i].c_str(),
+                                gui->m_emulator.m_pheripherials[0]->regs[i]);
                 }
             }
         }
-        else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
-        {   
-            renderExpressions();
+
+        if (ImGui::CollapsingHeader("Symbols, variables"))
+        {
+            for (const auto& symbol : 
+                gui->m_emulator.m_debuggerData.globalScope)
+            {
+                ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
+            }
+            for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
+            {
+                if (ImGui::CollapsingHeader(("File: " + pair.first).c_str()))
+                {
+                    for (const auto& symbol : pair.second)
+                    {
+                        ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
+                    }
+                }
+            }
+            for (const auto& pair : gui->m_emulator.m_debuggerData.funcScope)
+            {
+                if (ImGui::CollapsingHeader(("Func" + pair.first).c_str()))
+                {
+                    for (const auto& symbol : pair.second)
+                    {
+                        ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.value);
+                    }
+                }
+            }
         }
     }
-    ImGui::End();
+    else if (gui->sideBarToolType == GUI::ToolType::TOOL_DEBUGGER)
+    {   
+        renderExpressions();
+    }
 }
 
 void renderToolBar()
@@ -338,41 +331,34 @@ void renderToolBar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if (ImGui::Begin("ToolBar", nullptr,
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
+    if (ImGui::ImageButton("reset", resetImage_id,
+        ImVec2(toolBarImage_height, toolBarImage_width)))
     {
-        if (ImGui::ImageButton("reset", resetImage_id,
+        gui->m_cpu.startExec();
+    }
+    ImGui::SameLine();
+    if (gui->m_clock.getStatus())
+    {
+        if (ImGui::ImageButton("stop", stopImage_id,
             ImVec2(toolBarImage_height, toolBarImage_width)))
         {
-            gui->m_cpu.startExec();
-        }
-        ImGui::SameLine();
-        if (gui->m_clock.getStatus())
-        {
-            if (ImGui::ImageButton("stop", stopImage_id,
-                ImVec2(toolBarImage_height, toolBarImage_width)))
-            {
-                isRunning = false;
-            }
-        }
-        else
-        {
-            if (ImGui::ImageButton("start", startImage_id,
-                ImVec2(toolBarImage_height, toolBarImage_width)))
-            {
-                isRunning = true;
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::ImageButton("tick", tickImage_id,
-            ImVec2(toolBarImage_height, toolBarImage_width)))
-        {
-            gui->m_clock.singleCycle();
+            isRunning = false;
         }
     }
-    ImGui::End();
+    else
+    {
+        if (ImGui::ImageButton("start", startImage_id,
+            ImVec2(toolBarImage_height, toolBarImage_width)))
+        {
+            isRunning = true;
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::ImageButton("tick", tickImage_id,
+        ImVec2(toolBarImage_height, toolBarImage_width)))
+    {
+        gui->m_clock.singleCycle();
+    }
     ImGui::PopStyleVar(3);
 }
 
@@ -420,22 +406,7 @@ void renderEditor()
             if (ImGuiFileDialog::Instance()->IsOk())
             {
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string path = getPath(filePathName);
-                explorer.setDirectory(path);
-                if (fileOpenInputType == projectFile)
-                {
-                    gui->NewProjectOpened = true;
-                    gui->projectFileName = filePathName;
-                    gui->projectPath = path;
-                }
-                else
-                {
-                    isRunning = false;
-                    gui->m_clock.setStatus(isRunning);
-                    gui->m_cpu.loadProgramFromFile(filePathName);
-                    gui->m_cpu.startExec();
-                    editor.SetText(noOpenedFileText);
-                }
+                gui->load(filePathName);
             }
             // close
             ImGuiFileDialog::Instance()->Close();

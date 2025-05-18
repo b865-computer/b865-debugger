@@ -80,16 +80,13 @@ GLuint explorerImage_id = 0;
 GLuint debuggerImage_id = 0;
 GLuint emulatorImage_id = 0;
 
-Window_Attrib window_main("main", 0, 20, 0, 0, true, 0);
-Window_Attrib window_side_tool("side_tool", 0, 0, 248, 0, true, 1);
-Window_Attrib window_toolBar("ToolBar", 0, 0, 248, 26, true, 1, true);
-Window_Attrib window_side_bar_tool("side_bar_tool", 0, 26, 248, 0, true, 0);
-Window_Attrib window_sideBar("SideBar", 0, 0, 48, 0, true, 1);
-Window_Attrib window_sideTool("SideTool", 48, 0, 200, 0, true, 0, true);
-Window_Attrib window_editor_console("editor_console", 248, 0, 0, 0, true, 0);
-Window_Attrib window_fileopen("FilesOpened", 0, 0, 0, 26, true, 1, true);
-Window_Attrib window_editor("Editor", 0, 26, 0, 0, true, 0);
-Window_Attrib window_console("Console", 0, 0, 0, -300, true, 2);
+Window_Attrib window_main("main", true, false, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
+Window_Attrib window_toolBar("ToolBar", true, false);
+Window_Attrib window_sideBar("SideBar", true);
+Window_Attrib window_sideTool("SideTool", true, false, ImGuiWindowFlags_HorizontalScrollbar);
+Window_Attrib window_fileopen("FilesOpened", true, true);
+Window_Attrib window_editor("Editor", true);
+Window_Attrib window_console("Console", true);
 
 void error_callback(int error, const char *description)
 {
@@ -192,7 +189,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
-    gui->mainWindow->adjustLayout(width, height);
+    (void)width;
+    (void)height;
     gui->render();
     glfwSwapBuffers(window);
 }
@@ -208,16 +206,6 @@ void GUI::terminate()
     glfwTerminate();
 }
 
-void printWindowLayouts(Window_Attrib *window, int indent = 0)
-{
-    fprintf(stdout, "%*s%s: posX: %d, posY: %d, width: %d, height: %d\n", indent, "", window->name.c_str(), window->x + window->offsetFromOriginX, window->y + window->offsetFromOriginY, window->width, window->height);
-    indent++;
-    for (auto child : window->children)
-    {
-        printWindowLayouts(child, indent);
-    }
-}
-
 int GUI::init()
 {
     if (m_emulator.init())
@@ -226,19 +214,12 @@ int GUI::init()
     }
     gui = this;
 
-    window_main.addChild(&window_side_tool);
-    window_side_tool.addChild(&window_toolBar);
-    window_side_tool.addChild(&window_side_bar_tool);
-    window_side_bar_tool.addChild(&window_sideBar);
-    window_side_bar_tool.addChild(&window_sideTool);
-    window_side_bar_tool.setLayout(Window_Attrib::LayoutType::Horizontal);
-    window_side_tool.setLayout(Window_Attrib::LayoutType::Vertical);
-    window_main.addChild(&window_editor_console);
-    window_editor_console.addChild(&window_fileopen);
-    window_editor_console.addChild(&window_editor);
-    window_editor_console.addChild(&window_console);
-    window_editor_console.setLayout(Window_Attrib::LayoutType::Vertical);
-    window_main.setLayout(Window_Attrib::LayoutType::Horizontal);
+    window_main.addChild(&window_toolBar);
+    window_main.addChild(&window_sideBar);
+    window_main.addChild(&window_sideTool);
+    window_main.addChild(&window_fileopen);
+    window_main.addChild(&window_editor);
+    window_main.addChild(&window_console);
 
     window_toolBar.setRenderFunc(renderToolBar);
     window_sideBar.setRenderFunc(renderSideBar);
@@ -289,11 +270,11 @@ int GUI::init()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    io.IniFilename = NULL;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
-    mainWindow->adjustLayout(display_w, display_h);
 
     // printWindowLayouts(mainWindow);
 
@@ -490,20 +471,22 @@ void GUI::renderMenu()
 int GUI::render()
 {
     int display_w, display_h;
+    auto& io = ImGui::GetIO();
+
     glfwGetFramebufferSize(window, &display_w, &display_h);
-
-    mainWindow->adjustLayout(display_w, display_h);
-
+    
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // ImGui::GetIO();
-
     renderMenu();
 
+    ImGui::SetNextWindowPos(ImVec2(0, 20));
+    ImGui::SetNextWindowSize(ImVec2(display_w, display_h - 20));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     mainWindow->render();
+    ImGui::PopStyleVar(1);
 
     if (customHzInput)
     {
@@ -581,11 +564,17 @@ int GUI::render()
     glViewport(0, 0, display_w, display_h);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
     return 0;
 }
 
 int GUI::load(std::string filename, std::string path)
 {
+    printf("loading file: %s\n", filename.c_str());
     if(path.size() != 0)
     {
         filename = path + "/" + filename;
@@ -601,7 +590,12 @@ int GUI::load(std::string filename, std::string path)
         projectFileName = filename;
         NewProjectOpened = false;
     }
-    return m_emulator.load(filename);
+    if (m_emulator.load(filename))
+    {
+        return 1;
+    }
+    explorer.setDirectory(projectPath);
+    return 0;
 }
 
 int GUI::main()
