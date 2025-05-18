@@ -116,7 +116,7 @@ void CLI::handleEscape(const std::string &input, size_t &i, std::string &current
         currentArg += '\f';
     else if (c == 'v') 
         currentArg += '\v';
-    else if (c == '0') 
+    else if (c == '0' && ((input.size() == i - 1) || !isdigit(input[i + 1]))) 
         currentArg += '\0';
     else if (c == '\\') 
         currentArg += '\\';

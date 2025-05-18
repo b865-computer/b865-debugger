@@ -36,7 +36,7 @@ This project is a debugger/emualtor tool for my BreadBoard Computer (b865).
 
     ```bash
     ./build/src/b865-cli /path/to/project.b865
-    ./build/src/b865-gui # the gui app only works in the projects root directory because of the resources
+    ./build/src/b865-gui # the gui app only works in the project root directory because of the resources
     ```
 
 ## Usage
