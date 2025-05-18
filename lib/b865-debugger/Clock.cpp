@@ -30,6 +30,14 @@ Clock::Clock(void (*_cycle_func)(void))
 {
 }
 
+Clock::~Clock()
+{
+    if (!end)
+    {
+        terminate();
+    }
+}
+
 void Clock::init()
 {
     end = false;

@@ -30,6 +30,7 @@ class Clock
 {
 public:
     Clock(void (*_cycle_func)(void));
+    ~Clock();
     void init();
     void terminate();
     void setStatus(bool);
