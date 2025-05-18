@@ -9,6 +9,8 @@
 *.ts
 *.code-workspace
 
+imgui.ini
+
 b865_debugger
 
 .vscode/

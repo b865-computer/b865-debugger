@@ -11,6 +11,10 @@ FileWatcher::FileWatcher(const std::string &path, Callback callback)
 FileWatcher::~FileWatcher()
 {
     _running = false;
+    while (_running == false)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     _watchThread.detach();
 }
 
