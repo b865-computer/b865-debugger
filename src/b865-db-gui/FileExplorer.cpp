@@ -1,6 +1,5 @@
 #include "FileExplorer.h"
 #include <iostream>
-
 FileWatcher::FileWatcher(const std::string &path, Callback callback)
     : _path(path), _callback(callback), _running(true)
 {
@@ -10,12 +9,15 @@ FileWatcher::FileWatcher(const std::string &path, Callback callback)
 
 FileWatcher::~FileWatcher()
 {
-    _running = false;
-    while (_running == false)
+    if (!_running)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        return;
     }
-    _watchThread.detach();
+    _running = false;
+    if (_watchThread.joinable())
+    {
+        _watchThread.join();
+    }
 }
 
 void FileWatcher::watch()
@@ -51,29 +53,32 @@ void FileWatcher::watch()
 
     CloseHandle(hDir);
 #else
-    int fd = inotify_init();
+    int fd = inotify_init1(IN_NONBLOCK); // non-blocking mode
     if (fd < 0)
         return;
 
     int wd = inotify_add_watch(fd, _path.c_str(), IN_MODIFY | IN_CREATE | IN_DELETE);
-    if (wd < 0)
+    if (wd < 0) {
+        close(fd);
         return;
+    }
 
     char buffer[1024];
-    while (_running)
-    {
-        int length = read(fd, buffer, sizeof(buffer));
-        if (length > 0)
-        {
-            _callback(_path);
+    struct pollfd pfd = {fd, POLLIN, 0};
+
+    while (_running) {
+        int ret = poll(&pfd, 1, 500); // 500ms timeout
+        if (ret > 0 && (pfd.revents & POLLIN)) {
+            int length = read(fd, buffer, sizeof(buffer));
+            if (length > 0) {
+                _callback(_path);
+            }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     inotify_rm_watch(fd, wd);
     close(fd);
 #endif
-    _running = true;
 }
 
 FileExplorer::FileExplorer(const std::string &rootPath, FileOpenCallback onFileOpenCallback, FileRefreshCallback onFileRefreshCallback)
@@ -123,7 +128,11 @@ void FileExplorer::setDirectory(const std::string &newRootPath)
     _fileWatcher = std::make_unique<FileWatcher>(_rootPath, [this](const std::string &)
                                                  {
             std::lock_guard<std::mutex> lock(_mutex);
-            loadDirectory(_rootPath); });
+            loadDirectory(_rootPath);
+            if (_onFileRefresh)
+            {
+                _onFileRefresh();
+            }});
 }
 
 void FileExplorer::loadDirectory(const std::string &path)

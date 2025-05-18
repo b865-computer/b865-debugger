@@ -19,6 +19,7 @@
 #else
 #include <sys/inotify.h>
 #include <unistd.h>
+#include <poll.h> 
 #endif
 
 namespace fs = std::filesystem;

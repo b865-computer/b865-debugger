@@ -146,7 +146,7 @@ FileTabManager::~FileTabManager()
 void FileTabManager::renderFileTabs()
 {
     bool pop = false;
-    if (ImGui::BeginChild("TabScrollRegion", ImVec2(0, 30), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar))
+    if (ImGui::BeginChild("TabScrollRegion", ImVec2(0, 30), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_HorizontalScrollbar))
     {
         for (size_t i = 0; i < m_fileTabs.size(); i++)
         {
@@ -176,10 +176,6 @@ void FileTabManager::renderFileTabs()
             if (i < m_fileTabs.size() - 1) {
                 ImGui::SameLine();
                 ImGui::Text("|");
-            }
-            if (!(ImGui::IsItemHovered(ImGuiMouseButton_Left) || (fileTab == m_currentFileTab)))
-            {
-                ImGui::Spacing();
             }
             ImGui::EndChild();
 
