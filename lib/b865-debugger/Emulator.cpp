@@ -194,7 +194,7 @@ uint8_t Emulator::CTypeSize(CdbgExpr::CType type)
     
     case CdbgExpr::CType::Type::CHAR:
     case CdbgExpr::CType::Type::BOOL:
-    case CdbgExpr::CType::Type::VOID:
+    case CdbgExpr::CType::Type::VOID_type:
         return 1;
     
     default:

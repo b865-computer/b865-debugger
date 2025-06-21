@@ -180,7 +180,7 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
             cType = CdbgExpr::CType::Type::POINTER;
             break;
         case TypeChainRecord::Type::DCLType::SBIT:
-            cType = CdbgExpr::CType::Type::VOID;
+            cType = CdbgExpr::CType::Type::VOID_type;
             break;
         case TypeChainRecord::Type::DCLType::SHORT:
             cType = CdbgExpr::CType::Type::SHORT;
@@ -191,8 +191,8 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
         case TypeChainRecord::Type::DCLType::UPPER128_POINTER:
             cType = CdbgExpr::CType::Type::POINTER;
             break;
-        case TypeChainRecord::Type::DCLType::VOID:
-            cType = CdbgExpr::CType::Type::VOID;
+        case TypeChainRecord::Type::DCLType::VOID_type:
+            cType = CdbgExpr::CType::Type::VOID_type;
             break;
         
         default:
@@ -202,7 +202,7 @@ std::vector<CdbgExpr::CType> DebuggerDataHelper::getCTypeFromTypeChain(const Typ
         cTypes.push_back(cType);
         if (type.DCLtype == TypeChainRecord::Type::DCLType::FUNCTION)
         {
-            cTypes.push_back(CdbgExpr::CType::Type::VOID);
+            cTypes.push_back(CdbgExpr::CType::Type::VOID_type);
         }
     }
     return cTypes;

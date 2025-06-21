@@ -40,7 +40,7 @@ public:
             INT,
             CHAR,
             SHORT,
-            VOID,
+            VOID_type,
             FLOAT,
             STRUCT,
             SBIT,

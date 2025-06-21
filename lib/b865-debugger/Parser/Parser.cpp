@@ -540,7 +540,7 @@ TypeChainRecord::Type::DCLType DbgDataParser::getDCLType(Token token)
         }
         else if (c2 == 'V')
         {
-            return TypeChainRecord::Type::DCLType::VOID;
+            return TypeChainRecord::Type::DCLType::VOID_type;
         }
         else if (c2 == 'F')
         {
