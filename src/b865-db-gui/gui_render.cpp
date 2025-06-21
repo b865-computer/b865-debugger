@@ -232,7 +232,7 @@ void renderSideTool()
     }
     else if (gui->sideBarToolType == GUI::ToolType::TOOL_EMUALTOR)
     {
-        ImGui::Text("Frequency: %liHz", gui->m_frequencyHZ);
+        ImGui::Text("Frequency: %zuHz", gui->m_frequencyHZ);
         if (showRealFrequency)
         {
             ImGui::Text("Real freq. %.0fHz",
@@ -296,7 +296,7 @@ void renderSideTool()
             for (const auto& symbol : 
                 gui->m_emulator.m_debuggerData.globalScope)
             {
-                ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
+                ImGui::Text(" %s: 0x%04zX", symbol.name.c_str(), symbol.value);
             }
             for (const auto& pair : gui->m_emulator.m_debuggerData.fileScope)
             {
@@ -304,7 +304,7 @@ void renderSideTool()
                 {
                     for (const auto& symbol : pair.second)
                     {
-                        ImGui::Text(" %s: 0x%04lX", symbol.name.c_str(), symbol.value);
+                        ImGui::Text(" %s: 0x%04zX", symbol.name.c_str(), symbol.value);
                     }
                 }
             }
@@ -314,7 +314,7 @@ void renderSideTool()
                 {
                     for (const auto& symbol : pair.second)
                     {
-                        ImGui::Text(" %s: 0x%04lX", symbol.second.name.c_str(), symbol.second.value);
+                        ImGui::Text(" %s: 0x%04zX", symbol.second.name.c_str(), symbol.second.value);
                     }
                 }
             }

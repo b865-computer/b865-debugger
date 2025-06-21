@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
             if (emulator.pausedAtBreakpoint())
             {
                 size_t id = emulator.getCurrentBreakPointId();
-                printf("Program hit breakpoint %ld at address 0x%04x\n", id, emulator.m_cpu.getStatus().PC.addr);
+                printf("Program hit breakpoint %zu at address 0x%04x\n", id, emulator.m_cpu.getStatus().PC.addr);
                 emulator.stop();
             }
             std::this_thread::sleep_for(std::chrono::microseconds(100));
