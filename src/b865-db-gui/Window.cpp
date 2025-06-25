@@ -21,7 +21,7 @@ void Window_Attrib::addChild(Window_Attrib *child)
     children.push_back(child);
 }
 
-// Remove a childcd
+// Remove a child
 void Window_Attrib::removeChild(Window_Attrib *child)
 {
     child->parent = nullptr;
