@@ -24,14 +24,21 @@ GUI::~GUI() {}
 #include <stdio.h>
 #include <stdlib.h>
 
+GUI *gui;
+
 FileTabManager fileTabManager;
 
 FileTab::FileWarningCallbackReturnType fileCallBack(const std::string &str, FileTab::FileWarningCallbackType type)
 {
-    // TODO: implement a real callback
-    (void)type;
-    fprintf(stderr, "FileTab::FileWarningCallback: %s\n", str.c_str());
-    return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO;
+    switch (type)
+    {
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_OK:
+        gui->displayPopup({"OK"}, str.c_str());
+        break;
+    
+    default:
+        break;
+    }
 }
 
 void openFile(const std::string &path)
@@ -56,11 +63,8 @@ bool isRunning = false;
 uint64_t customFrequencyHZ = 1;
 bool fileOpenInput = false;
 bool showRealFrequency = false;
-std::string openedFileName = "";
 bool changedSource = false;
 bool console = true;
-
-GUI *gui;
 
 FileInputType fileOpenInputType = projectFile;
 
@@ -153,6 +157,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     (void)scancode;
     (void)mods;
     bool control = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL));
+    bool alt = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
     if (key == GLFW_KEY_O && control && action == GLFW_PRESS)
     {
         fileOpenInput = true;
@@ -164,26 +169,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_S && control && action == GLFW_PRESS)
     {
-        if (openedFileName.size())
-        {
-            std::ofstream file(openedFileName);
-            if (file.is_open())
-            {
-                auto text = editor.GetText();
-                if (text[text.size() - 1] == '\n')
-                {
-                    text.pop_back();
-                }
-                file << text;
-                file.close();
-                changedSource = true;
-            }
-            else
-            {
-                fprintf(stderr, "Unable to open file: %s\n", openedFileName.c_str());
-                gui->displayError("Unable to open file: %s\n", openedFileName.c_str());
-            }
-        }
+        fileTabManager.saveFileTab(fileTabManager.getCurrentFileTab());
+    }
+    if (key == GLFW_KEY_B && control && action == GLFW_PRESS)
+    {
+        gui->building = true;
+    }
+    if (key == GLFW_KEY_F4 && alt && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
     }
 }
 
@@ -197,6 +191,11 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void GUI::terminate()
 {
+    if(!fileTabManager.closeFiles())
+    {
+        closeCancelled = true;
+        return;
+    }
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -369,7 +368,7 @@ void GUI::renderMenu()
             {
                 building = true;
             }
-            if (ImGui::MenuItem("Start/Stop", "Ctrl+S", &isRunning))
+            if (ImGui::MenuItem("Start/Stop", "Ctrl+T", &isRunning))
             {
                 m_clock.setStatus(!m_clock.getStatus());
             }
@@ -609,6 +608,7 @@ int GUI::main()
 
     while (!glfwWindowShouldClose(window))
     {
+MAIN_LOOP:
         m_emulator.main();
         if(!m_clock.getStatus())
         {
@@ -672,12 +672,17 @@ int GUI::main()
         m_clock.setStatus(isRunning);
         if (isRunning && changedSource)
         {
-            building = true;
+            m_clock.setStatus(false);
         }
         glfwSwapBuffers(window);
         ImGui_ImplGlfw_Sleep(10);
     }
     terminate();
+    if (closeCancelled)
+    {
+        closeCancelled = false;
+        goto MAIN_LOOP;
+    }
     m_emulator.terminate();
     return 0;
 }
@@ -704,4 +709,28 @@ void GUI::displayError(const char *fmt, ...)
 
     // Store the formatted string in error_str
     error_str = std::string(buffer.data());
+}
+
+void GUI::displayPopup(std::vector<std::string> buttons, const char *fmt, ...)
+{
+    popup_display = true;
+    va_list args;
+    va_start(args, fmt); // Initialize the argument list
+
+    // Determine the required buffer size
+    int size = vsnprintf(nullptr, 0, fmt, args) + 1; // +1 for null terminator
+    va_end(args);
+
+    // Allocate a buffer of the required size
+    std::vector<char> buffer(size);
+
+    // Format the string into the buffer
+    va_start(args, fmt);
+    vsnprintf(buffer.data(), size, fmt, args);
+    va_end(args);
+
+    buffer[size - 1] = '\0';
+
+    // Store the formatted string in error_str
+    popup_str = std::string(buffer.data());
 }

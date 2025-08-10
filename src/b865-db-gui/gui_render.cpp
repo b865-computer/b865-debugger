@@ -16,7 +16,6 @@ extern bool isRunning;
 extern uint64_t customFrequencyHZ;
 extern bool fileOpenInput;
 extern bool showRealFrequency;
-extern std::string openedFileName;
 extern bool changedSource;
 extern bool console;
 
@@ -431,6 +430,15 @@ void renderEditor()
         TextEditor::Breakpoints breakpoints = {gui->currentPosition.line};
         editor.SetBreakpoints(breakpoints);
         editor.Render("");
+        editor.IsTextChanged() ? changedSource = true : changedSource = false;
+        if (changedSource)
+        {
+            std::shared_ptr<FileTab> tab = fileTabManager.getCurrentFileTab();
+            if (tab != nullptr)
+            {
+                tab->modify(editor.GetText());
+            }
+        }
     }
 }
 
