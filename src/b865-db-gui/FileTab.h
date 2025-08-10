@@ -7,6 +7,7 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include "Event.h"
 
 class FileTabManager;
 
@@ -65,7 +66,7 @@ public:
     void addFileTab(const std::string &filename, FileTab::FileWarningCallback callback);
     bool removeFileTab(std::shared_ptr<FileTab> fileTab);
     void refreshFileTabs();
-    void renderFileTabs();
+    void renderFileTabs(EventLoop* events);
     void saveFileTab(std::shared_ptr<FileTab>);
     bool changedCurrentTab();
     std::shared_ptr<FileTab> getCurrentFileTab();

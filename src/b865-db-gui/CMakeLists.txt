@@ -1,5 +1,7 @@
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS *.cpp)
 
+set(CMAKE_CXX_STANDARD 23)
+
 add_executable(b865-gui ${SRC_FILES})
 
 target_compile_options(b865-gui  PUBLIC -O3)

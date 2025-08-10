@@ -12,6 +12,7 @@
 #include "Clock.h"
 #include "Debugger.h"
 #include "Window.h"
+#include "Event.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void renderSideBar();
@@ -28,7 +29,7 @@ enum FileInputType
     projectFile,
 };
 
-class GUI
+class GUI : public EventLoop
 {
 public:
     friend void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -73,6 +74,8 @@ public:
     std::string *ConsoleText;
     bool ins_level;
     bool building = false;
+    size_t popup_selected_button = 0;
+    bool popup_button_clicked = false;
 
 private:
     Emulator m_emulator;
@@ -85,7 +88,9 @@ private:
     bool error_display;
     std::string popup_str;
     bool popup_display;
-    bool closeCancelled = false;
+    std::vector<std::string> popup_buttons;
+    std::thread eventThread;
+    bool windowCanClose = false;
     
     Window_Attrib* mainWindow;
 };
