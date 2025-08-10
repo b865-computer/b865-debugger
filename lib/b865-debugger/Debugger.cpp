@@ -9,6 +9,9 @@
 /// @return 0 if the initialization was successful, 1 otherwise
 int DebuggerDataHelper::init(std::string configFileName)
 {
+    fileScope.clear();
+    funcScope.clear();
+    globalScope.clear();
     std::string path = getPath(configFileName);
     std::ifstream configFile(configFileName, std::ios::in);
     if (!configFile.is_open())

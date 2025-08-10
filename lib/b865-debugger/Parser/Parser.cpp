@@ -78,7 +78,6 @@ enum ParseState
 
 void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
 {
-    printf("Parsing map file: %s\n", filename.c_str());
     std::ifstream file(filename.string());
     if (!file.is_open())
     {

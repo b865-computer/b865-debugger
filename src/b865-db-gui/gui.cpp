@@ -574,7 +574,6 @@ int GUI::render()
 
 int GUI::load(std::string filename, std::string path)
 {
-    printf("loading file: %s\n", filename.c_str());
     if(path.size() != 0)
     {
         filename = path + "/" + filename;
