@@ -135,6 +135,12 @@ std::string &FileTab::getContent()
     return m_buffer;
 }
 
+void FileTab::modify(const std::string &buffer)
+{
+    m_buffer = std::move(buffer);
+    m_modified = true;
+}
+
 FileTabManager::FileTabManager()
 {
 }
@@ -240,8 +246,47 @@ std::shared_ptr<FileTab> FileTabManager::getFileTab(std::string filename)
     return nullptr;
 }
 
-void FileTabManager::removeFileTab(std::shared_ptr<FileTab> fileTab)
+bool FileTabManager::closeFiles()
 {
+    for (auto fileTab : m_fileTabs)
+    {
+        if (fileTab->ismodified())
+        {
+            auto ret = fileTab->m_callback("File modified, save changes?", FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
+            if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE)
+            {
+                saveFileTab(fileTab);
+            }
+            else if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL)
+            {
+                return false;
+            }
+        }
+        removeFileTab(fileTab);
+    }
+    m_fileTabs.clear();
+    m_currentFileTab = nullptr;
+    return true;
+}
+
+bool FileTabManager::removeFileTab(std::shared_ptr<FileTab> fileTab)
+{
+    if (fileTab == nullptr)
+    {
+        return true;
+    }
+    if (fileTab->ismodified())
+    {
+        auto ret = fileTab->m_callback("File modified, save changes?", FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
+        if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE)
+        {
+            saveFileTab(fileTab);
+        }
+        else if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL)
+        {
+            return false;
+        }
+    }
     auto it = std::find(m_fileTabs.begin(), m_fileTabs.end(), fileTab);
     if (it != m_fileTabs.end())
     {
@@ -260,6 +305,7 @@ void FileTabManager::removeFileTab(std::shared_ptr<FileTab> fileTab)
         }
         fileTab = nullptr;
     }
+    return true;
 }
 
 void FileTabManager::addFileTab(const std::string &filename, FileTab::FileWarningCallback callback)

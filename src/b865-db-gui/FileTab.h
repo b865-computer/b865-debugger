@@ -20,6 +20,7 @@ public:
         FileWarningCallbackType_OK_CANCEL,
         FileWarningCallbackType_YES_NO,
         FileWarningCallbackType_SAVE_DISCARD,
+        FileWarningCallbackType_SAVE_DISCARD_CANCEL,
         FileWarningCallbackType_LOAD_CANCEL,
         FileWarningCallbackType_SAVE_CLOSE_CANCEL,
     };
@@ -44,6 +45,7 @@ public:
     bool init();
     bool exists();
     std::string &getContent();
+    void modify(const std::string &buffer);
 
 private:
     std::string m_filename;
@@ -61,13 +63,14 @@ public:
     FileTabManager();
     ~FileTabManager();
     void addFileTab(const std::string &filename, FileTab::FileWarningCallback callback);
-    void removeFileTab(std::shared_ptr<FileTab> fileTab);
+    bool removeFileTab(std::shared_ptr<FileTab> fileTab);
     void refreshFileTabs();
     void renderFileTabs();
     void saveFileTab(std::shared_ptr<FileTab>);
     bool changedCurrentTab();
     std::shared_ptr<FileTab> getCurrentFileTab();
     std::shared_ptr<FileTab> getFileTab(std::string filename);
+    bool closeFiles();
 
 private:
     std::vector<std::shared_ptr<FileTab>> m_fileTabs;

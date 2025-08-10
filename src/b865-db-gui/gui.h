@@ -53,6 +53,7 @@ public:
     void terminate();
     int main();
     void displayError(const char *fmt, ...);
+    void displayPopup(std::vector<std::string> buttons, const char *fmt, ...);
     int load(std::string filename, std::string path = "");
 
 private:
@@ -71,6 +72,7 @@ public:
     bool buildRunning = false;
     std::string *ConsoleText;
     bool ins_level;
+    bool building = false;
 
 private:
     Emulator m_emulator;
@@ -81,7 +83,9 @@ private:
     Clock &m_clock;
     std::string error_str;
     bool error_display;
-    bool building = false;
+    std::string popup_str;
+    bool popup_display;
+    bool closeCancelled = false;
     
     Window_Attrib* mainWindow;
 };
