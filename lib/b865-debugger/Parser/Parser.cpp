@@ -177,16 +177,14 @@ void DbgDataParser::parseMap(DebuggerData &data, std::filesystem::path filename)
                 }
                 symbol = linestr.substr(0, linestr.find_first_of(" \t"));
                 linestr.erase(0, linestr.find_first_of(" \t"));
-                if (linestr.find_first_not_of(" \t") == std::string::npos)
+                if (linestr.find_first_not_of(" \t") != std::string::npos)
                 {
-                    goto Process_Symbol;
+                    linestr.erase(0, linestr.find_first_not_of(" \t"));
+                    if (linestr.size() && linestr[0] == '|')
+                    {
+                        linestr.erase(linestr.begin());
+                    }
                 }
-                linestr.erase(0, linestr.find_first_not_of(" \t"));
-                if (linestr.size() && linestr[0] == '|')
-                {
-                    linestr.erase(linestr.begin());
-                }
-Process_Symbol:
                 if (!symbol.empty() && symbol.find('$') == std::string::npos)
                 {
                     // Parse hex address

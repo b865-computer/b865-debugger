@@ -25,7 +25,7 @@ std::string getPath(std::string filename)
 {
     if(!filename.size())
     {
-        goto END;
+        return filename;
     }
     if(filename.find_last_of("\\/") != std::string::npos)
     {
@@ -49,7 +49,6 @@ std::string getPath(std::string filename)
     {
         return "";
     }
-END:
     return filename;
 }
 
