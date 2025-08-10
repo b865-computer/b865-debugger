@@ -371,7 +371,7 @@ void renderFilesOpened()
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus))
     {
-        fileTabManager.renderFileTabs();
+        fileTabManager.renderFileTabs(gui);
     }
     ImGui::End();
     ImGui::PopStyleVar(3);
@@ -430,14 +430,17 @@ void renderEditor()
         TextEditor::Breakpoints breakpoints = {gui->currentPosition.line};
         editor.SetBreakpoints(breakpoints);
         editor.Render("");
-        editor.IsTextChanged() ? changedSource = true : changedSource = false;
+        changedSource = editor.IsTextChanged();
         if (changedSource)
         {
-            std::shared_ptr<FileTab> tab = fileTabManager.getCurrentFileTab();
-            if (tab != nullptr)
-            {
-                tab->modify(editor.GetText());
-            }
+            gui->post([]{
+                std::shared_ptr<FileTab> tab = fileTabManager.getCurrentFileTab();
+                if (tab != nullptr)
+                {
+                    std::string text = editor.GetText();
+                    tab->modify(text.erase(text.length() - 1));
+                }
+            });
         }
     }
 }

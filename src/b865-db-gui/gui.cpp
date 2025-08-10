@@ -23,32 +23,94 @@ GUI::~GUI() {}
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
 
 GUI *gui;
 
 FileTabManager fileTabManager;
 
+void waitForPopup()
+{
+    while (!gui->popup_button_clicked)
+    {
+        gui->popup_button_clicked = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+}
+
 FileTab::FileWarningCallbackReturnType fileCallBack(const std::string &str, FileTab::FileWarningCallbackType type)
 {
+    gui->popup_button_clicked = false;
     switch (type)
     {
     case FileTab::FileWarningCallbackType::FileWarningCallbackType_OK:
         gui->displayPopup({"OK"}, str.c_str());
-        break;
-    
+        waitForPopup();
+        return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_OK;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_YES_NO:
+        gui->displayPopup({"Yes", "No"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_YES;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD:
+        gui->displayPopup({"Save", "Discard"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_DISCARD;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL:
+        gui->displayPopup({"Save", "Discard", "Cancel"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE;
+        else if (gui->popup_selected_button == 1)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_DISCARD;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_LOAD_CANCEL:
+        gui->displayPopup({"Load", "Cancel"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_LOAD;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_CLOSE_CANCEL:
+        gui->displayPopup({"Save", "Close", "Cancel"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE;
+        else if (gui->popup_selected_button == 1)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CLOSE;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL;
+
+    case FileTab::FileWarningCallbackType::FileWarningCallbackType_OK_CANCEL:
     default:
-        break;
+        gui->displayPopup({"OK", "Cancel"}, str.c_str());
+        waitForPopup();
+        if (gui->popup_selected_button == 0)
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_OK;
+        else
+            return FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_CANCEL;
     }
 }
 
 void openFile(const std::string &path)
 {
-    fileTabManager.addFileTab(path, fileCallBack);
+    gui->post([path]{fileTabManager.addFileTab(path, fileCallBack);});
 }
 
 void refreshFiles()
 {
-    fileTabManager.refreshFileTabs();
+    gui->post([]{fileTabManager.refreshFileTabs();});
 }
 
 FileExplorer explorer(".", openFile, refreshFiles);
@@ -169,7 +231,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_S && control && action == GLFW_PRESS)
     {
-        fileTabManager.saveFileTab(fileTabManager.getCurrentFileTab());
+        gui->post([]{
+            fileTabManager.saveFileTab(fileTabManager.getCurrentFileTab());
+        });
     }
     if (key == GLFW_KEY_B && control && action == GLFW_PRESS)
     {
@@ -191,11 +255,12 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void GUI::terminate()
 {
-    if(!fileTabManager.closeFiles())
+    stop(); // Event loop
+    if (eventThread.joinable())
     {
-        closeCancelled = true;
-        return;
+        eventThread.join();
     }
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -212,6 +277,11 @@ int GUI::init()
         return 1;
     }
     gui = this;
+
+    eventThread = std::thread([this]()
+    {
+        run(); // Event loop
+    });
 
     window_main.addChild(&window_toolBar);
     window_main.addChild(&window_sideBar);
@@ -284,23 +354,6 @@ int GUI::init()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return a nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    // - Our Emscripten build process allows embedding fonts to be accessible at runtime from the "fonts/" folder. See Makefile.emscripten for details.
-    // io.Fonts->AddFontDefault();
-    // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    // IM_ASSERT(font != nullptr);
 
     toolBarImage_width = 0;
     toolBarImage_height = 0;
@@ -530,6 +583,29 @@ int GUI::render()
         ImGui::EndChild();
         ImGui::EndPopup();
     }
+
+    if (popup_display)
+    {
+        ImGui::OpenPopup("Info");
+        popup_display = false;
+    }
+    if (ImGui::BeginPopupModal("Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text(popup_str.c_str());
+        for (size_t i = 0; i < popup_buttons.size(); i++)
+        {
+            if (ImGui::Button(popup_buttons[i].c_str()))
+            {
+                popup_display = false;
+                popup_selected_button = i;
+                popup_button_clicked = true;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+        }
+        ImGui::EndPopup();
+    }
+
     if (building)
     {
         if (projectPath == "")
@@ -605,10 +681,23 @@ int GUI::main()
     bool buildProcessRunning = false;
     std::string buildCmd;
     m_emulator.start();
+    windowCanClose = false;
 
-    while (!glfwWindowShouldClose(window))
+    while (!windowCanClose)
     {
-MAIN_LOOP:
+        if (glfwWindowShouldClose(window))
+        {
+            post([this]{
+                if(fileTabManager.closeFiles())
+                {
+                    windowCanClose = true;
+                }
+                else
+                {
+                    glfwSetWindowShouldClose(window, false);
+                }
+            });
+        }
         m_emulator.main();
         if(!m_clock.getStatus())
         {
@@ -678,11 +767,6 @@ MAIN_LOOP:
         ImGui_ImplGlfw_Sleep(10);
     }
     terminate();
-    if (closeCancelled)
-    {
-        closeCancelled = false;
-        goto MAIN_LOOP;
-    }
     m_emulator.terminate();
     return 0;
 }
@@ -713,6 +797,7 @@ void GUI::displayError(const char *fmt, ...)
 
 void GUI::displayPopup(std::vector<std::string> buttons, const char *fmt, ...)
 {
+    popup_buttons = buttons;
     popup_display = true;
     va_list args;
     va_start(args, fmt); // Initialize the argument list

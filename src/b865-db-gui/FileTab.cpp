@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "Utils.h"
 #include <algorithm>
+#include <format>
 
 FileTab::FileTab(const std::string filename, FileWarningCallback _callback)
     : m_filename(filename), m_callback(_callback)
@@ -41,7 +42,7 @@ int FileTab::refresh()
     {
         if (m_modified)
         {
-            if (m_callback("File modified by another program,\nsave this version, or discard changes",
+            if (m_callback(std::format("File: {} modified by another program,\nsave this version, or discard changes", m_filename),
                            FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD) ==
                 FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE)
             {
@@ -55,7 +56,7 @@ int FileTab::refresh()
         }
         else
         {
-            if (m_callback("File modified by another program,\ndo you want to reload the file?",
+            if (m_callback(std::format("File: {} modified by another program,\ndo you want to reload the file?", m_filename),
                            FileWarningCallbackType::FileWarningCallbackType_YES_NO) ==
                 FileWarningCallbackReturnType::FileWarningCallbackReturnType_YES)
             {
@@ -78,7 +79,7 @@ int FileTab::save(std::string &buffer)
     if (!m_file.is_open())
     {
         m_exists = false;
-        if (m_callback("Unable to open file (deleted),\nKeep file in editor?",
+        if (m_callback(std::format("Unable to open file: {} (deleted),\nKeep file in editor?", m_filename),
                        FileWarningCallbackType::FileWarningCallbackType_YES_NO) ==
             FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO)
         {
@@ -89,7 +90,7 @@ int FileTab::save(std::string &buffer)
     m_file.write(&buffer[0], buffer.size());
     if (m_file.bad())
     {
-        m_callback("Failed to save file", FileWarningCallbackType::FileWarningCallbackType_OK);
+        m_callback(std::format("Failed to save file: {}", m_filename), FileWarningCallbackType::FileWarningCallbackType_OK);
     }
     m_file.close();
     m_modified = false;
@@ -104,7 +105,7 @@ std::string FileTab::load(bool *ret)
     if (!m_file.is_open())
     {
         m_exists = false;
-        if (m_callback("Unable to open file (deleted),\nKeep file in editor?",
+        if (m_callback(std::format("Unable to open file: {} (deleted),\nKeep file in editor?", m_filename),
                        FileWarningCallbackType::FileWarningCallbackType_YES_NO) ==
             FileWarningCallbackReturnType::FileWarningCallbackReturnType_NO)
         {
@@ -149,7 +150,7 @@ FileTabManager::~FileTabManager()
 {
 }
 
-void FileTabManager::renderFileTabs()
+void FileTabManager::renderFileTabs(EventLoop* events)
 {
     bool pop = false;
     if (ImGui::BeginChild("TabScrollRegion", ImVec2(0, 30), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_HorizontalScrollbar))
@@ -173,7 +174,7 @@ void FileTabManager::renderFileTabs()
             {
                 if (ImGui::SmallButton("x"))
                 {
-                    removeFileTab(fileTab);
+                    events->post([this, fileTab]{removeFileTab(fileTab);});
                 }
             }
             else {
@@ -252,7 +253,8 @@ bool FileTabManager::closeFiles()
     {
         if (fileTab->ismodified())
         {
-            auto ret = fileTab->m_callback("File modified, save changes?", FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
+            auto ret = fileTab->m_callback(std::format("File: {} modified, save changes?", m_currentFileTab->m_filename),
+                FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
             if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE)
             {
                 saveFileTab(fileTab);
@@ -277,7 +279,8 @@ bool FileTabManager::removeFileTab(std::shared_ptr<FileTab> fileTab)
     }
     if (fileTab->ismodified())
     {
-        auto ret = fileTab->m_callback("File modified, save changes?", FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
+        auto ret = fileTab->m_callback(std::format("File: {} modified, save changes?", m_currentFileTab->m_filename),
+            FileTab::FileWarningCallbackType::FileWarningCallbackType_SAVE_DISCARD_CANCEL);
         if (ret == FileTab::FileWarningCallbackReturnType::FileWarningCallbackReturnType_SAVE)
         {
             saveFileTab(fileTab);
